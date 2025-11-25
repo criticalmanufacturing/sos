@@ -27,11 +27,14 @@ jobs:
       # Restore
       - name: Restore dependencies
         run: dotnet restore
+        working-directory: src/app
 
       # Build
       - name: Build
         run: dotnet build --configuration Release --no-restore
+        working-directory: src/app
 
       # Run tests
       - name: Run tests
         run: dotnet test --configuration Release --no-build --verbosity normal
+        working-directory: src/app
