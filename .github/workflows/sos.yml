@@ -1,0 +1,40 @@
+name: sos
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install .NET
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      # Restore
+      - name: Restore dependencies
+        run: dotnet restore
+
+      # Build
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      # Run tests
+      - name: Run tests
+        run: dotnet test --configuration Release --no-build --verbosity normal
