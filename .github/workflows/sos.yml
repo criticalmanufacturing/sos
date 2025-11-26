@@ -24,11 +24,6 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      # Restore
-      - name: Restore dependencies
-        run: dotnet restore
-        working-directory: src/app
-
       # Build
       - name: Build
         run: dotnet build --configuration Release --no-restore
