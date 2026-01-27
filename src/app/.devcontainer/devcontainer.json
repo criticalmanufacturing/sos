@@ -28,7 +28,10 @@
 	// }
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "dotnet restore",
+	"postCreateCommand": {
+        "install-oc-cli": "cd /tmp && wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz && tar xvzf /tmp/openshift-client-linux.tar.gz oc && sudo mv /tmp/oc /usr/local/bin/ && rm /tmp/openshift-client-linux.tar.gz",
+        "dotnet-restore": "dotnet restore"
+    },
 
 	// Configure tool-specific properties.
     "customizations": {
@@ -39,7 +42,8 @@
                 "ms-dotnettools.csharp@2.39.29",
                 "ms-dotnettools.vscode-dotnet-runtime",
                 "ms-dotnettools.vscodeintellicode-csharp",
-                "eamodio.gitlens"
+                "eamodio.gitlens",
+				"Google.geminicodeassist"
             ]
         }
     },
