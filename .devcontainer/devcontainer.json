@@ -12,8 +12,10 @@
     	"ghcr.io/devcontainers/features/github-cli:1": {}, 
 		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
 		"ghcr.io/devcontainers/features/dotnet:2": {
-    		"version": "10.0"
-		}
+    		"version": "8.0"
+		},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/devcontainers/features/common-utils:2": {}
 	},
   "remoteUser": "vscode",
 	// Features to add to the dev container. More info: https://containers.dev/features.
@@ -30,6 +32,7 @@
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": {
         "install-oc-cli": "cd /tmp && wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz && tar xvzf /tmp/openshift-client-linux.tar.gz oc && sudo mv /tmp/oc /usr/local/bin/ && rm /tmp/openshift-client-linux.tar.gz",
+		"install-dotnet-tools": "dotnet tool install -g dotnet-dump && dotnet tool install -g dotnet-symbol",
         "dotnet-restore": "dotnet restore src/app/Cmf.SoS.sln",
 		"permission-fix": "sudo chown -R vscode:vscode ."
     },
@@ -42,7 +45,6 @@
                 "ms-dotnettools.csdevkit@1.9.55",
                 "ms-dotnettools.csharp@2.39.29",
                 "ms-dotnettools.vscode-dotnet-runtime",
-                "ms-dotnettools.vscodeintellicode-csharp",
                 "eamodio.gitlens",
 				"Google.geminicodeassist"
             ]
