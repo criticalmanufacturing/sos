@@ -1,17 +1,20 @@
 using Cmf.CLI.Core;
+using Cmf.Cli.Plugin.Sos.Utilities;
 
-namespace Cmf.Cli.Plugin.Sos.Utilities;
+namespace Cmf.Cli.Plugin.Sos.Orchestration;
 
-public class DumpOrchestrator
+/// <summary>
+/// This class will orchestrate all dump operations
+/// </summary>
+public class DotnetDumpOrchestrator
 {
     private readonly KubeCliRunner _kube;
-    public DumpOrchestrator(KubeCliRunner kube) => _kube = kube;
+    public DotnetDumpOrchestrator(KubeCliRunner kube) => _kube = kube;
 
-    public void Execute(string pod, string output, string? container, string? ns,string image)
+    public void Execute(string pod, string output, string pid, string? container, string? ns, string image)
     {
         var inspector = new PodInspector(_kube);
         var session = new DebugSessionManager(_kube);
-        var finder = new ProcessFinder(_kube);
 
         try
         {
@@ -23,7 +26,6 @@ public class DumpOrchestrator
             var debugContainer = session.Start(pod, targetContainer, image, ns);
 
             // 2. Find PID
-            var pid = finder.FindDotnetPid(pod, debugContainer, ns);
             Log.Information($"Target PID: {pid}");
 
             // 3. Collect Dump

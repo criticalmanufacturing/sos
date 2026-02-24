@@ -1,17 +1,20 @@
 using Cmf.CLI.Core;
+using Cmf.Cli.Plugin.Sos.Utilities;
 
-namespace Cmf.Cli.Plugin.Sos.Utilities;
+namespace Cmf.Cli.Plugin.Sos.Orchestration;
 
-public class CountersOrchestrator
+/// <summary>
+/// This class will orchestrate DotnetCounters operation.
+/// </summary>
+public class DotnetCountersOrchestrator
 {
     private readonly KubeCliRunner _kube;
-    public CountersOrchestrator(KubeCliRunner kube) => _kube = kube;
+    public DotnetCountersOrchestrator(KubeCliRunner kube) => _kube = kube;
 
-    public void Execute(string pod, string output, string? container, string? ns, string image, string format, int duration, string counters)
+    public void Execute(string pod, string output, string pid, string? container, string? ns, string image, string format, int duration, string counters)
     {
         var inspector = new PodInspector(_kube);
         var session = new DebugSessionManager(_kube);
-        var finder = new ProcessFinder(_kube);
 
         try
         {
@@ -21,7 +24,6 @@ public class CountersOrchestrator
 
             var debugContainer = session.Start(pod, targetContainer, image, ns);
 
-            var pid = finder.FindDotnetPid(pod, debugContainer, ns);
             Log.Information($"Target PID: {pid}");
 
             string targetPath = $"/tmp/output.{format.ToLower()}";

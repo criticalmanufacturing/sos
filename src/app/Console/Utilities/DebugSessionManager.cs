@@ -9,7 +9,6 @@ public class DebugSessionManager
     private string? _debugContainerName;
     private string? _pod;
     private string? _ns;
-    private string? _context;
 
     public DebugSessionManager(KubeCliRunner kube) => _kube = kube;
 
@@ -29,6 +28,9 @@ public class DebugSessionManager
         args.Add("--");
         args.Add("sleep"); 
         args.Add("3600"); // Keep it alive so we can exec into it
+
+        _pod = pod;
+        _ns = ns;
 
         Log.Information($"Injecting debugger (detached)...");
         
@@ -81,7 +83,6 @@ public class DebugSessionManager
         {
             var args = new List<string>();
             if (_ns != null) { args.Add("-n"); args.Add(_ns); }
-            if (_context != null) { args.Add("--context"); args.Add(_context); }
             args.Add("exec"); args.Add(_pod); args.Add("-c"); args.Add(_debugContainerName);
             args.Add("--"); args.Add("kill"); args.Add("1"); // Kill sleep
             _kube.RunAllowFailure(args);

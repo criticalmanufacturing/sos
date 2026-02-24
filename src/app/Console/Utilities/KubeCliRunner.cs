@@ -3,6 +3,9 @@ using System.Text;
 
 namespace Cmf.Cli.Plugin.Sos.Utilities;
 
+/// <summary>
+/// This class runs is designed to handle all kubectl console operations.
+/// </summary>
 public sealed class KubeCliRunner
 {
     private readonly string exe;

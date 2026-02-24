@@ -1,7 +1,7 @@
-using System.CommandLine;
 using Cmf.CLI.Core;
 using Cmf.CLI.Core.Attributes;
 using Cmf.CLI.Core.Commands;
+using System.CommandLine;
 
 namespace Cmf.Cli.Plugin.Sos.Commands;
 
