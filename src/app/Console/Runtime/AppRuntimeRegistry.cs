@@ -8,7 +8,7 @@ public static class AppRuntimeRegistry
 {
     private static readonly HashSet<string> NodeJsApps = new(StringComparer.OrdinalIgnoreCase)
     {
-        "kafka-ui",
+        "clickhouse-ui",
         // Add other Node.js app labels here.
     };
 

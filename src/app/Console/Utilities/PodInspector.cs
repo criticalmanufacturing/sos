@@ -34,6 +34,10 @@ public class PodInspector
         return null;
     }
 
+    /// <summary>
+    /// This function will gather the running container name for that specific pod
+    /// For example pod <host-12345-abcde> will have the container <host> running.
+    /// </summary>
     public string ResolveTargetContainer(string pod, string? ns)
     {
         var args = new List<string> { "get", "pod", pod, "-o", "json" };
