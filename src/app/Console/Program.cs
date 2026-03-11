@@ -6,6 +6,7 @@ using ExecutionContext = Cmf.CLI.Core.Objects.ExecutionContext;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using System.CommandLine.Parsing;
+using Sos.UI;
 
 try
 {
@@ -23,6 +24,13 @@ try
         npmClient: new VerdaccioService(new Uri(registryAddress ?? "https://dev.criticalmanufacturing.io/repository/npm-public")));
 
     using var activity = ExecutionContext.ServiceProvider.GetService<ITelemetryService>()!.StartActivity("Main");
+
+    rootCommand.SetHandler(() =>
+    {
+        Log.Debug("No subcommand provided. Launching interactive TUI.");
+        var menu = new MainMenu();
+        menu.Show();
+    });
 
     var result = await parser.InvokeAsync(args);
     activity?.SetTag("execution.success", true);
