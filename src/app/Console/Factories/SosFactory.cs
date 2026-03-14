@@ -16,6 +16,11 @@ public sealed class SosFactory
     private readonly KubeCliRunner _kube;
     private readonly PodInspector _inspector;
 
+    /// <summary>
+    /// The runtime resolved for the current pod.
+    /// </summary>
+    public AppRuntime CurrentRuntime { get; private set; }
+
     public SosFactory(KubeCliRunner kube)
     {
         _kube = kube;
@@ -36,6 +41,7 @@ public sealed class SosFactory
         }
 
         Log.Information($"Pod app label: {appName ?? "(none)"} -> runtime: {runtime}");
+        CurrentRuntime = runtime;
 
         return Create(runtime);
     }

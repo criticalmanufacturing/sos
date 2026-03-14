@@ -16,6 +16,9 @@ public class NodeJsDumpOrchestrator
         var inspector = new PodInspector(_kube);
         var session = new DebugSessionManager(_kube);
 
+        // Enforce correct output path and extension for NodeJS (.heapdump)
+        output = OutputChecker.ResolveOutputPath(output, pod, ".heapdump");
+
         try
         {
             var targetContainer = string.IsNullOrWhiteSpace(container) 
@@ -38,8 +41,12 @@ public class NodeJsDumpOrchestrator
             // STEP 1: Push the JS script into the debug container
             Log.Information("Pushing extraction script to debug container...");
             var pushArgs = new List<string>();
-            if (ns != null) { pushArgs.Add("-n"); pushArgs.Add(ns); }
+            if (ns != null) 
+            { 
+                pushArgs.Add("-n"); pushArgs.Add(ns); 
+            }
             pushArgs.Add("cp");
+            pushArgs.Add("--retries=-1");
             pushArgs.Add(scriptPath);
             pushArgs.Add($"{pod}:{containerScriptPath}");
             pushArgs.Add("-c"); 
@@ -50,9 +57,17 @@ public class NodeJsDumpOrchestrator
             // STEP 2: Execute the script
             Log.Information("Triggering V8 Heap Snapshot via Inspector Protocol...");
             var dumpArgs = new List<string>();
-            if (ns != null) { dumpArgs.Add("-n"); dumpArgs.Add(ns); }
-            dumpArgs.Add("exec"); dumpArgs.Add(pod); dumpArgs.Add("-c"); dumpArgs.Add(debugContainer);
-            dumpArgs.Add("--"); dumpArgs.Add("sh"); dumpArgs.Add("-c");
+            if (ns != null) 
+            { 
+                dumpArgs.Add("-n"); dumpArgs.Add(ns); 
+            }
+            dumpArgs.Add("exec"); 
+            dumpArgs.Add(pod); 
+            dumpArgs.Add("-c"); 
+            dumpArgs.Add(debugContainer);
+            dumpArgs.Add("--"); 
+            dumpArgs.Add("sh");
+            dumpArgs.Add("-c");
             
             // Much safer single-line execution
             dumpArgs.Add($"kill -USR1 {pid} && sleep 2 && export DUMP_PATH={debuggerStagingPath} && node --experimental-websocket {containerScriptPath}");
@@ -60,10 +75,11 @@ public class NodeJsDumpOrchestrator
             _kube.Run(dumpArgs);
 
             // STEP 3: Pull the dump back to the local environment
-            Log.Information($"Downloading to {output}...");
+            Log.Information($"Downloading to {output} ...");
             var cpArgs = new List<string>();
             if (ns != null) { cpArgs.Add("-n"); cpArgs.Add(ns); }
             cpArgs.Add("cp");
+            cpArgs.Add("--retries=1");
             cpArgs.Add($"{pod}:{debuggerStagingPath}");
             cpArgs.Add(output);
             cpArgs.Add("-c"); 

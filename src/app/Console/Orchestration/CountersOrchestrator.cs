@@ -31,9 +31,17 @@ public class DotnetCountersOrchestrator
             Log.Information($"Collecting dotnet-counters for {duration} seconds...");
 
             var countersArgs = new List<string>();
-            if (ns != null) { countersArgs.Add("-n"); countersArgs.Add(ns); }
-            countersArgs.Add("exec"); countersArgs.Add(pod); countersArgs.Add("-c"); countersArgs.Add(debugContainer);
-            countersArgs.Add("--"); countersArgs.Add("sh"); countersArgs.Add("-c");
+            if (ns != null) 
+            { 
+                countersArgs.Add("-n"); countersArgs.Add(ns); 
+            }
+            countersArgs.Add("exec"); 
+            countersArgs.Add(pod); 
+            countersArgs.Add("-c"); 
+            countersArgs.Add(debugContainer);
+            countersArgs.Add("--"); 
+            countersArgs.Add("sh"); 
+            countersArgs.Add("-c");
 
             countersArgs.Add($@"
                 export DOTNET_CLI_HOME=/tmp
@@ -48,11 +56,15 @@ public class DotnetCountersOrchestrator
 
             _kube.Run(countersArgs);
 
-            Log.Information($"Downloading to {output}...");
+            Log.Information($"Downloading to {output} ...");
 
             var cpArgs = new List<string>();
-            if (ns != null) { cpArgs.Add("-n"); cpArgs.Add(ns); }
+            if (ns != null) 
+            { 
+                cpArgs.Add("-n"); cpArgs.Add(ns); 
+            }
             cpArgs.Add("cp");
+            cpArgs.Add("--retries=1");
             cpArgs.Add($"{pod}:{targetPath}");
             cpArgs.Add(output);
             cpArgs.Add("-c");

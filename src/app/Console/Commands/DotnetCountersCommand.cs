@@ -5,6 +5,7 @@ using Cmf.Cli.Plugin.Sos.Factories;
 using Cmf.Cli.Plugin.Sos.Utilities;
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
+using Cmf.CLI.Utilities;
 
 namespace Cmf.Cli.Plugin.Sos.Commands;
 
@@ -15,7 +16,7 @@ public sealed class DotnetCountersCommand : BaseCommand
     {
         var podArg = new Argument<string>("pod", "The name of the target Pod");
         var outputOpt = new Option<string>(new[] { "--output", "-o" }, "Local path to save the counters") { IsRequired = true };
-        var pidOption = new Option<string>(new[] { "--pid", "-pid" }, "Process ID of the target process") { IsRequired = true };
+        var pidOption = new Option<string?>(new[] { "--pid", "-pid" }, "Process ID of the target process");
         var formatOpt = new Option<string>(new[] { "--format" }, () => "json", "The format of the counters file (json or csv)");
         var durationOpt = new Option<int>(new[] { "--duration" }, () => 60, "The duration in seconds for which to collect counters. Defaults to 60s.");
         var countersOpt = new Option<string>(new[] { "--counters" }, () => "System.Runtime", "A space-separated list of counters to collect.");
@@ -33,14 +34,28 @@ public sealed class DotnetCountersCommand : BaseCommand
         cmd.AddOption(nsOpt);
         cmd.AddOption(imageOpt);
 
-        cmd.Handler = CommandHandler.Create<string, string, string, string, int, string, string?, string?, string>(Execute);
+        cmd.Handler = CommandHandler.Create<string, string, string?, string, int, string, string?, string?, string>(Execute);
     }
 
-    public void Execute(string pod, string output, string pid, string format, int duration, string counters, string? container, string? @namespace, string image)
+    public void Execute(string pod, string output, string? pid, string format, int duration, string counters, string? container, string? @namespace, string image)
     {
+        if(string.IsNullOrWhiteSpace(image))
+        {
+            image = "dev.criticalmanufacturing.io/platformengineering/sos:latest";
+        }
+        
         var kube = new KubeCliRunner();
         var factory = new SosFactory(kube);
         var ops = factory.CreateForPod(pod, @namespace, "dotnetCounters");
+
+        // Auto-resolve PID in case the user doesn't specify it
+        if (string.IsNullOrWhiteSpace(pid))
+        {
+            var inspector = new ProcessInspector(kube);
+            pid = inspector.ResolvePid(pod, container, @namespace, factory.CurrentRuntime);
+            Log.Warning($"PID not provided. Auto-resolved target PID to: {pid}");
+        }
+
         try
         {
             ops.DotnetCounters(pod, output, pid, format, duration, counters, container, @namespace, image);

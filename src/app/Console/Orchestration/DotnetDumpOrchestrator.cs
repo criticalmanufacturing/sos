@@ -16,6 +16,9 @@ public class DotnetDumpOrchestrator
         var inspector = new PodInspector(_kube);
         var session = new DebugSessionManager(_kube);
 
+        // Enforce correct output path and extension for .NET (.dmp)
+        output = OutputChecker.ResolveOutputPath(output, pod, ".dmp");
+
         try
         {
             var targetContainer = string.IsNullOrWhiteSpace(container) 
@@ -37,9 +40,17 @@ public class DotnetDumpOrchestrator
             Log.Information("Collecting dump...");
             
             var dumpArgs = new List<string>();
-            if (ns != null) { dumpArgs.Add("-n"); dumpArgs.Add(ns); }
-            dumpArgs.Add("exec"); dumpArgs.Add(pod); dumpArgs.Add("-c"); dumpArgs.Add(debugContainer);
-            dumpArgs.Add("--"); dumpArgs.Add("sh"); dumpArgs.Add("-c");
+            if (ns != null) 
+            { 
+                dumpArgs.Add("-n"); dumpArgs.Add(ns); 
+            }
+            dumpArgs.Add("exec"); 
+            dumpArgs.Add(pod); 
+            dumpArgs.Add("-c"); 
+            dumpArgs.Add(debugContainer);
+            dumpArgs.Add("--"); 
+            dumpArgs.Add("sh"); 
+            dumpArgs.Add("-c");
             
             // --- THE FIX ---
             // 1. Set environment variables
@@ -58,11 +69,15 @@ public class DotnetDumpOrchestrator
             _kube.Run(dumpArgs);
 
             // 4. Download from the debugger's local filesystem
-            Log.Information($"Downloading to {output}...");
+            Log.Information($"Downloading to {output} ...");
             
             var cpArgs = new List<string>();
-            if (ns != null) { cpArgs.Add("-n"); cpArgs.Add(ns); }
+            if (ns != null) 
+            { 
+                cpArgs.Add("-n"); cpArgs.Add(ns); 
+            }
             cpArgs.Add("cp");
+            cpArgs.Add("--retries=1");
             cpArgs.Add($"{pod}:{debuggerStagingPath}");
             cpArgs.Add(output);
             cpArgs.Add("-c"); 

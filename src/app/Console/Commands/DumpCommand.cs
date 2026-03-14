@@ -5,6 +5,7 @@ using Cmf.Cli.Plugin.Sos.Factories;
 using Cmf.Cli.Plugin.Sos.Utilities;
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
+using Cmf.CLI.Utilities;
 
 namespace Cmf.Cli.Plugin.Sos.Commands;
 
@@ -18,7 +19,6 @@ public sealed class DumpCommand : BaseCommand
         var pidOption = new Option<string>(new[] { "--pid", "-pid" }, "Process ID of the target process") { IsRequired = true };
         var targetContainerOpt = new Option<string>("--container", "The specific container inside the pod");
         var nsOpt = new Option<string>(new[] { "--namespace", "-n" }, "Namespace of the target pod") { IsRequired = true };
-        var cliOpt = new Option<string>("--cli", () => "kubectl", "CLI tool");
         var imageOpt = new Option<string>("--image", () => "dev.criticalmanufacturing.io/platformengineering/sos:latest", "Debug image");
 
         cmd.AddArgument(podArg);
@@ -26,25 +26,37 @@ public sealed class DumpCommand : BaseCommand
         cmd.AddOption(pidOption);
         cmd.AddOption(targetContainerOpt);
         cmd.AddOption(nsOpt);
-        cmd.AddOption(cliOpt);
         cmd.AddOption(imageOpt);
 
-        cmd.Handler = CommandHandler.Create<string, string, string, string?, string?, string, string>(Execute);
+        cmd.Handler = CommandHandler.Create<string, string, string, string?, string?, string>(Execute);
     }
 
-    public void Execute(string pod, string output, string pid, string? container, string? @namespace, string cli, string image)
+    public void Execute(string pod, string output, string pid, string? container, string? @namespace, string image)
     {
+        if(image.IsNullOrEmpty()) 
+        {
+            image = "dev.criticalmanufacturing.io/platformengineering/sos:latest";
+        }
+        
         var kube = new KubeCliRunner();
         var factory = new SosFactory(kube);
         var ops = factory.CreateForPod(pod, @namespace, "Dump");
+
+        // Auto-resolve PID in case the user doesn't specify it
+        if (string.IsNullOrWhiteSpace(pid))
+        {
+            var inspector = new ProcessInspector(kube);
+            // Since CreateForPod() was already executed we have access to factory.CurrentRuntime
+            pid = inspector.ResolvePid(pod, container, @namespace, factory.CurrentRuntime);
+            Log.Warning($"PID not provided. Auto-resolved target PID to: {pid}");
+        }
         try
         {
             ops.Dump(pod, output, pid, container, @namespace, image);
         }
         catch (Exception ex)
         {
-            Log.Error($"Dump operation failed: {ex.Message}");
-            throw;
+            throw new CliException($"Dump operation failed: {ex.Message}");
         }
     }
 }

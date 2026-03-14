@@ -1,6 +1,8 @@
 using Spectre.Console;
 using System.Diagnostics;
 using Sos.UI.Utils;
+using Cmf.Cli.Plugin.Sos.Commands;
+using System.CommandLine;
 
 namespace Sos.UI
 {
@@ -34,7 +36,7 @@ namespace Sos.UI
         {
             AnsiConsole.MarkupLine("[green]SOS is starting...[/]");
 
-            var namespaces = GetNamespaces();
+            string[] namespaces = GetNamespaces();
 
             if (namespaces.Length == 0)
             {
@@ -42,11 +44,28 @@ namespace Sos.UI
                 return;
             }
 
-            var selectedNamespace = FilterSystem.Select("Enter namespace", namespaces);
+            string selectedNamespace = FilterSystem.Select("Enter namespace", namespaces);
 
             AnsiConsole.MarkupLine($"\n[blue]Selected namespace:[/] [green]{selectedNamespace}[/]");
 
-            new PodSelection(selectedNamespace).Run();
+            string selectedPod = new PodSelection(selectedNamespace).Run();
+
+            string action = new OperationSelection(selectedNamespace, selectedPod).Run();
+
+            var pid = new PidSelection().Run(); // pid can be null
+
+            string output = new OutputSelection().Run();
+
+            if (action == "Dump")
+            {
+                DumpCommand dumpCommand = new DumpCommand();
+                dumpCommand.Execute(pod: selectedPod, 
+                                    output: output,
+                                    pid: pid?.ToString(), // TODO make pid auto detector
+                                    @namespace: selectedNamespace,
+                                    container: null,
+                                    image: null); // TODO handle this in a better way
+            }
         }
     }
 }

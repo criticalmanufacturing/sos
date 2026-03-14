@@ -1,6 +1,7 @@
 using Spectre.Console;
 using System.Diagnostics;
 using Sos.UI.Utils;
+using Cmf.CLI.Utilities;
 
 namespace Sos.UI
 {
@@ -37,20 +38,19 @@ namespace Sos.UI
                 .ToArray();
         }
 
-        public void Run()
+        public string Run()
         {
             var pods = GetPods();
 
             if (pods.Length == 0)
             {
-                AnsiConsole.MarkupLine("[red]No pods found in this namespace.[/]");
-                return;
+                throw new CliException("No pods found in this namespace.");
             }
 
             var selectedPod = FilterSystem.Select("Enter pod", pods);
 
             AnsiConsole.MarkupLine($"\n[blue]Selected pod:[/] [green]{selectedPod}[/]");
-            new OperationSelection(_namespace, selectedPod).Run();
+            return selectedPod;
         }
     }
 }
