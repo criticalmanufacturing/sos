@@ -9,14 +9,14 @@ RUN apt-get update && \
     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
     apt-get update
 
-# Install NodeJS Tooling and Install Network Tooling
-RUN apt-get install -y nodejs tcpdump
+# Install NodeJS Tooling
+RUN apt-get install -y nodejs
 
 ENV DOTNET_TOOLS_PATH=/usr/lib/dotnet/tools
 
 # Install DotNet Tooling
 RUN apt-get install -y dotnet-sdk-$DOTNET_SDK && \
-    mkdir $DOTNET_TOOLS_PATH && \
+    mkdir -p $DOTNET_TOOLS_PATH && \
     dotnet tool install dotnet-dump --version $DOTNET_SDK.* --tool-path=$DOTNET_TOOLS_PATH && \
     dotnet tool install dotnet-counters --version $DOTNET_SDK.* --tool-path=$DOTNET_TOOLS_PATH && \
     chown -R $USER_ID:$USER_GROUP /usr/lib/dotnet/ && \
