@@ -50,10 +50,9 @@ namespace Sos.UI
 
             string selectedPod = new PodSelection(selectedNamespace).Run();
 
+            // After selecting the namespace we gather the mandatory information for any operation 
             string action = new OperationSelection(selectedNamespace, selectedPod).Run();
-
-            var pid = new PidSelection().Run(); // pid can be null
-
+            string pid = new PidSelection().Run(); // PID can be -1 and in that case we use ProcessInspector to gather it.
             string output = new OutputSelection().Run();
 
             if (action == "Dump")
@@ -61,10 +60,24 @@ namespace Sos.UI
                 DumpCommand dumpCommand = new DumpCommand();
                 dumpCommand.Execute(pod: selectedPod, 
                                     output: output,
-                                    pid: pid?.ToString(), // TODO make pid auto detector
+                                    pid: pid.ToString(),
                                     @namespace: selectedNamespace,
                                     container: null,
                                     image: null); // TODO handle this in a better way
+            }
+            else if (action == "DotnetCounters")
+            {
+                int duration = new DurationSelection().Run();
+                DotnetCountersCommand dotnetCountersCommand = new DotnetCountersCommand();
+                dotnetCountersCommand.Execute(pod: selectedPod,
+                                            output: output,
+                                            pid: pid.ToString(),
+                                            format: "json",
+                                            counters: "System.Runtime",
+                                            container: null,
+                                            @namespace: selectedNamespace,
+                                            image: null, // TODO handle this in a better way
+                                            duration: duration);  
             }
         }
     }

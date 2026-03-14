@@ -4,7 +4,7 @@ namespace Sos.UI
 {
     public class PidSelection
     {
-        public int? Run()
+        public string Run()
         {
             var choice = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
@@ -14,10 +14,10 @@ namespace Sos.UI
 
             if (choice == "Enter manually")
             {
-                return AnsiConsole.Ask<int>("[green]Enter PID:[/]");
+                return AnsiConsole.Ask<string>("[green]Enter PID:[/]");
             }
 
-            return null;
+            return "-1"; // In this case, use default value defined in the command.
         }
     }
 }

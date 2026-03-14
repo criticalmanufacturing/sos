@@ -16,6 +16,9 @@ public class DotnetCountersOrchestrator
         var inspector = new PodInspector(_kube);
         var session = new DebugSessionManager(_kube);
 
+        // Enforce correct output path and extension for .NET counters (format argument)
+        output = OutputChecker.ResolveOutputPath(output, pod, "."+format );
+
         try
         {
             var targetContainer = string.IsNullOrWhiteSpace(container)

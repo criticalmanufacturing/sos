@@ -33,6 +33,7 @@ public sealed class DumpCommand : BaseCommand
 
     public void Execute(string pod, string output, string pid, string? container, string? @namespace, string image)
     {
+        // The following conditions are only used when the user uses the SOS UI. In this case since we call directly execute() we need some way to use default values
         if(image.IsNullOrEmpty()) 
         {
             image = "dev.criticalmanufacturing.io/platformengineering/sos:latest";
@@ -43,13 +44,14 @@ public sealed class DumpCommand : BaseCommand
         var ops = factory.CreateForPod(pod, @namespace, "Dump");
 
         // Auto-resolve PID in case the user doesn't specify it
-        if (string.IsNullOrWhiteSpace(pid))
+        if (pid.Equals("-1"))
         {
             var inspector = new ProcessInspector(kube);
             // Since CreateForPod() was already executed we have access to factory.CurrentRuntime
             pid = inspector.ResolvePid(pod, container, @namespace, factory.CurrentRuntime);
             Log.Warning($"PID not provided. Auto-resolved target PID to: {pid}");
         }
+        
         try
         {
             ops.Dump(pod, output, pid, container, @namespace, image);

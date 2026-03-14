@@ -34,24 +34,31 @@ public sealed class DotnetCountersCommand : BaseCommand
         cmd.AddOption(nsOpt);
         cmd.AddOption(imageOpt);
 
-        cmd.Handler = CommandHandler.Create<string, string, string?, string, int, string, string?, string?, string>(Execute);
+        cmd.Handler = CommandHandler.Create<string, string, string, string, int, string, string?, string?, string>(Execute);
     }
 
-    public void Execute(string pod, string output, string? pid, string format, int duration, string counters, string? container, string? @namespace, string image)
+    public void Execute(string pod, string output, string pid, string format, int duration, string counters, string? container, string? @namespace, string image)
     {
+        // The following conditions are only used when the user uses the SOS UI. In this case since we call directly execute() we need some way to use default values
         if(string.IsNullOrWhiteSpace(image))
         {
             image = "dev.criticalmanufacturing.io/platformengineering/sos:latest";
         }
-        
+
+        if(duration.Equals(-1))
+        {
+            duration = 60;
+        }
+
         var kube = new KubeCliRunner();
         var factory = new SosFactory(kube);
         var ops = factory.CreateForPod(pod, @namespace, "dotnetCounters");
 
         // Auto-resolve PID in case the user doesn't specify it
-        if (string.IsNullOrWhiteSpace(pid))
+        if (pid.Equals("-1"))
         {
             var inspector = new ProcessInspector(kube);
+            // Since CreateForPod() was already executed we have access to factory.CurrentRuntime
             pid = inspector.ResolvePid(pod, container, @namespace, factory.CurrentRuntime);
             Log.Warning($"PID not provided. Auto-resolved target PID to: {pid}");
         }
