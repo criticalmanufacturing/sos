@@ -24,13 +24,15 @@ jobs:
     - name: Test
       run: dotnet test src/app/Cmf.SoS.sln --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
 
-    - name: Code Coverage Summary
-      uses: irongut/CodeCoverageSummary@v1.3.0
-      with:
-        filename: coverage/**/coverage.cobertura.xml
-        badge: true
-        format: markdown
-        output: both
+    - name: Install ReportGenerator
+      run: dotnet tool install -g dotnet-reportgenerator-globaltool
 
-    - name: Write Summary to GitHub Actions UI
-      run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+    - name: Generate Coverage Report
+      run: |
+        reportgenerator \
+          -reports:"coverage/**/coverage.cobertura.xml" \
+          -targetdir:"coverage-report" \
+          -reporttypes:"HtmlInline_AzurePipelines;MarkdownSummaryGithub"
+
+    - name: Publish Coverage Summary
+      run: cat coverage-report/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
