@@ -13,6 +13,10 @@ public class ProcessInspector
         _kube = kube;
     }
 
+    /// <summary>
+    /// This function will automatically detect the PID of the process we want to target based on the runtime.
+    /// This can be used by multiple operations.
+    /// </summary>
     public string ResolvePid(string pod, string? container, string? ns, AppRuntime runtime)
     {
         var processName = runtime switch

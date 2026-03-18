@@ -5,7 +5,6 @@ using Cmf.Cli.Plugin.Sos.Factories;
 using Cmf.Cli.Plugin.Sos.Utilities;
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
-using Cmf.CLI.Utilities;
 
 namespace Cmf.Cli.Plugin.Sos.Commands;
 

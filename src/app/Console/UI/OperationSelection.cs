@@ -35,7 +35,8 @@ namespace Sos.UI
                     .AddChoices(new[]
                     {
                         "Dump",
-                        "DotnetCounters"
+                        "DotnetCounters",
+                        "Interactive Shell"
                     }));
 
             AnsiConsole.MarkupLine($"\n[blue]Selected action:[/] [green]{selectedAction}[/]");

@@ -15,6 +15,9 @@ public sealed class KubeCliRunner
         exe = "kubectl";
     }
 
+    /// <summary>
+    /// This function runs the kubectl command with the provided arguments and captures the output and error streams.
+    /// </summary>
     public CommandResult Run(IReadOnlyList<string> args)
     {
         var res = RunInternal(args);
@@ -26,8 +29,17 @@ public sealed class KubeCliRunner
         return res;
     }
 
+    /// <summary>
+    /// This functionruns the kubectl command but doesn't throw an exception if the command fails.
+    /// Instead it returns the CommandResult which contains the exit code, standard output, and standard error.
+    /// </summary>
     public CommandResult RunAllowFailure(IReadOnlyList<string> args) => RunInternal(args);
 
+    /// <summary>
+    /// This function runs the kubectl command with the provided arguments and captures the output and error streams. 
+    /// It returns a CommandResult containing the exit code, standard output, and standard error. 
+    /// If the command fails (non-zero exit code), it throws an exception with detailed information about the failure.
+    /// </summary>
     private CommandResult RunInternal(IReadOnlyList<string> args)
     {
         var psi = new ProcessStartInfo

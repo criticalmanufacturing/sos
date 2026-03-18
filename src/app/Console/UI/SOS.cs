@@ -2,7 +2,7 @@ using Spectre.Console;
 using System.Diagnostics;
 using Sos.UI.Utils;
 using Cmf.Cli.Plugin.Sos.Commands;
-using System.CommandLine;
+using Cmf.CLI.Utilities;
 
 namespace Sos.UI
 {
@@ -51,34 +51,55 @@ namespace Sos.UI
             string selectedPod = new PodSelection(selectedNamespace).Run();
 
             // After selecting the namespace we gather the mandatory information for any operation 
-            string action = new OperationSelection(selectedNamespace, selectedPod).Run();
-            string pid = new PidSelection().Run(); // PID can be -1 and in that case we use ProcessInspector to gather it.
-            string output = new OutputSelection().Run();
+            string action = new OperationSelection(selectedNamespace, selectedPod).Run(); // This action string must be equal to the switch cases below.
 
-            if (action == "Dump")
+            switch (action)
             {
-                DumpCommand dumpCommand = new DumpCommand();
-                dumpCommand.Execute(pod: selectedPod, 
-                                    output: output,
-                                    pid: pid.ToString(),
-                                    @namespace: selectedNamespace,
-                                    container: null,
-                                    image: null); // TODO handle this in a better way
+                case "Dump":
+                    new DumpCommand().Execute(
+                        pod: selectedPod,
+                        output: AskForOutput(),
+                        pid: AskForPid(),
+                        @namespace: selectedNamespace,
+                        container: null,
+                        image: null!); // TODO handle this in a better way
+                    break;
+
+                case "DotnetCounters":
+                    int duration = new DurationSelection().Run();
+                    new DotnetCountersCommand().Execute(
+                        pod: selectedPod,
+                        output: AskForOutput(),
+                        pid: AskForPid(),
+                        format: "json",
+                        counters: "System.Runtime",
+                        container: null,
+                        @namespace: selectedNamespace,
+                        image: null!, // TODO handle this in a better way
+                        duration: duration);
+                    break;
+
+                case "Interactive Shell":
+                    new InteractiveShellCommand().Execute(
+                        pod: selectedPod,
+                        @namespace: selectedNamespace,
+                        container: null,
+                        image: null!); // TODO handle this in a better way
+                    break;
+
+                default:
+                    throw new CliException($"Unknown action: {action}");
             }
-            else if (action == "DotnetCounters")
-            {
-                int duration = new DurationSelection().Run();
-                DotnetCountersCommand dotnetCountersCommand = new DotnetCountersCommand();
-                dotnetCountersCommand.Execute(pod: selectedPod,
-                                            output: output,
-                                            pid: pid.ToString(),
-                                            format: "json",
-                                            counters: "System.Runtime",
-                                            container: null,
-                                            @namespace: selectedNamespace,
-                                            image: null, // TODO handle this in a better way
-                                            duration: duration);  
-            }
+        }
+
+        private string AskForPid()
+        {
+            return new PidSelection().Run(); // PID can be -1 and in that case we use ProcessInspector to gather it.
+        }
+
+        private string AskForOutput()
+        {
+            return new OutputSelection().Run();
         }
     }
 }

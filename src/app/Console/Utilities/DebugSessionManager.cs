@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Cmf.CLI.Core;
+using Cmf.CLI.Utilities;
 
 namespace Cmf.Cli.Plugin.Sos.Utilities;
 
@@ -12,6 +13,11 @@ public class DebugSessionManager
 
     public DebugSessionManager(KubeCliRunner kube) => _kube = kube;
 
+    /// <summary>
+    /// This function starts a debug session by creating a new debug container attached to the specified pod and container.
+    /// It constructs the appropriate kubectl command with the provided parameters and executes it.
+    /// The function captures the output to determine the name of the debug container created by Kubernetes, which is essential for subsequent operations.
+    /// </summary>
     public string Start(string pod, string targetContainer, string image, string? ns)
     {
 
@@ -51,6 +57,9 @@ public class DebugSessionManager
         return _debugContainerName;
     }
 
+    /// <summary>
+    /// This function extracts the debug container name from the output of the kubectl debug command.
+    /// </summary>
     private string? ExtractContainerName(string text)
     {
         // Matches "Defaulting debug container name to debugger-abcde"
@@ -58,6 +67,10 @@ public class DebugSessionManager
         return match.Success ? match.Groups["name"].Value : null;
     }
 
+    /// <summary>
+    /// This function checks if the debug container is ready by attempting to execute a simple command inside it.
+    /// If the command fails, it waits for a short period and retries (currently set to 10 attemps with 1 second delay).
+    /// </summary>
     private void WaitForReady(string pod, string container, string? ns)
     {
         // Simple "Door Kicker": Try to echo, if it fails, sleep 1s and try again.
@@ -76,6 +89,10 @@ public class DebugSessionManager
         }
     }
 
+    /// <summary>
+    /// This function closes the debug session by killing the debug container.
+    /// If it fails it will throw an exception with instructions for manual cleanup.
+    /// </summary>
     public void Close()
     {
         if (_debugContainerName == null || _pod == null) return;
@@ -87,6 +104,8 @@ public class DebugSessionManager
             args.Add("--"); args.Add("kill"); args.Add("1"); // Kill sleep
             _kube.RunAllowFailure(args);
         }
-        catch { /* Ignore */ }
+        catch (Exception ex) { 
+            throw new CliException("Failed to clean up debug container. Please check manually and remove the 'debugger-*' container if it exists. " + ex.Message);
+         }
     }
 }
