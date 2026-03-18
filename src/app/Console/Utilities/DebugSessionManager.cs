@@ -60,7 +60,7 @@ public class DebugSessionManager
     /// <summary>
     /// This function extracts the debug container name from the output of the kubectl debug command.
     /// </summary>
-    private string? ExtractContainerName(string text)
+    public string? ExtractContainerName(string text)
     {
         // Matches "Defaulting debug container name to debugger-abcde"
         var match = Regex.Match(text, @"name to (?<name>[a-z0-9\-]+)");
