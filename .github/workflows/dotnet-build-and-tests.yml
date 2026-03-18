@@ -32,5 +32,5 @@ jobs:
         format: markdown
         output: both
 
-    - name: Publish Coverage Summary
-      run: cat coverage-report/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+    - name: Write Summary to GitHub Actions UI
+      run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
