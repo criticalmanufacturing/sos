@@ -7,9 +7,9 @@ using Cmf.Cli.Plugin.Sos.Runtime;
 namespace Cmf.Cli.Plugin.Sos.Factories;
 
 /// <summary>
-/// Creates the appropriate runtime-specific SoS operations (dump, counters, etc.)
+/// Creates the appropriate runtime-specific SoS operations (dump, runtime metrics, etc.)
 /// based on pod discovery (app.kubernetes.io/name -> runtime).
-/// Used by all SoS commands (dump, dotnetCounters, etc.).
+/// Used by all SoS commands (dump, runtimeMetrics, etc.).
 /// </summary>
 public sealed class SosFactory
 {

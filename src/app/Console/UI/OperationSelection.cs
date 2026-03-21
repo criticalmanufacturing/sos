@@ -35,7 +35,7 @@ namespace Sos.UI
                     .AddChoices(new[]
                     {
                         "Dump",
-                        "DotnetCounters",
+                        "Runtime Metrics",
                         "Interactive Shell",
                         "Remote Debug"
                     }));

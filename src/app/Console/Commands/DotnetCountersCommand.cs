@@ -8,17 +8,17 @@ using System.CommandLine.NamingConventionBinder;
 
 namespace Cmf.Cli.Plugin.Sos.Commands;
 
-[CmfCommand("dotnetCounters", Id = "dotnetCounters", ParentId = "sos", Description = "Collect .NET counters from a .NET pod (no effect on Node.js pods)")]
-public sealed class DotnetCountersCommand : BaseCommand
+[CmfCommand("runtimeMetrics", Id = "runtimeMetrics", ParentId = "sos", Description = "Collect runtime metrics from a pod (no effect on Node.js pods)")]
+public sealed class RuntimeMetricsCommand : BaseCommand
 {
     public override void Configure(Command cmd)
     {
         var podArg = new Argument<string>("pod", "The name of the target Pod");
-        var outputOpt = new Option<string>(new[] { "--output", "-o" }, "Local path to save the counters") { IsRequired = true };
+        var outputOpt = new Option<string>(new[] { "--output", "-o" }, "Local path to save the metrics") { IsRequired = true };
         var pidOption = new Option<string?>(new[] { "--pid", "-pid" }, "Process ID of the target process");
-        var formatOpt = new Option<string>(new[] { "--format" }, () => "json", "The format of the counters file (json or csv)");
-        var durationOpt = new Option<int>(new[] { "--duration" }, () => 60, "The duration in seconds for which to collect counters. Defaults to 60s.");
-        var countersOpt = new Option<string>(new[] { "--counters" }, () => "System.Runtime", "A space-separated list of counters to collect.");
+        var formatOpt = new Option<string>(new[] { "--format" }, () => "json", "The format of the metrics file (json or csv)");
+        var durationOpt = new Option<int>(new[] { "--duration" }, () => 60, "The duration in seconds for which to collect metrics. Defaults to 60s.");
+        var countersOpt = new Option<string>(new[] { "--counters" }, () => "System.Runtime", "A space-separated list of metrics to collect.");
         var targetContainerOpt = new Option<string>("--container", "The specific container inside the pod");
         var nsOpt = new Option<string>(new[] { "--namespace", "-n" }, "Namespace of the target pod") { IsRequired = true };
         var imageOpt = new Option<string>("--image", () => "dev.criticalmanufacturing.io/platformengineering/sos:latest", "Debug image");
@@ -51,7 +51,7 @@ public sealed class DotnetCountersCommand : BaseCommand
 
         var kube = new KubeCliRunner();
         var factory = new SosFactory(kube);
-        var ops = factory.CreateForPod(pod, @namespace, "dotnetCounters");
+        var ops = factory.CreateForPod(pod, @namespace, "runtimeMetrics");
 
         // Auto-resolve PID in case the user doesn't specify it
         if (pid.Equals("-1"))
@@ -64,11 +64,11 @@ public sealed class DotnetCountersCommand : BaseCommand
 
         try
         {
-            ops.DotnetCounters(pod, output, pid, format, duration, counters, container, @namespace, image);
+            ops.RuntimeMetrics(pod, output, pid, format, duration, counters, container, @namespace, image);
         }
         catch (Exception ex)
         {
-            Log.Error($"Counters operation failed: {ex.Message}");
+            Log.Error($"Metrics operation failed: {ex.Message}");
             throw;
         }
     }

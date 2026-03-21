@@ -6,17 +6,17 @@ using Cmf.CLI.Core;
 namespace Cmf.Cli.Plugin.Sos.Infrastructure;
 
 /// <summary>
-/// .NET runtime operations (dump, counters, etc).
+/// .NET runtime operations
 /// </summary>
 public sealed class DotNetSosOperations : ISosOperations
 {
     private readonly DotnetDumpOrchestrator _dumpOrchestrator;
-    private readonly DotnetCountersOrchestrator _countersOrchestrator;
+    private readonly RuntimeMetricsOrchestrator _runtimeMetricsOrchestrator;
 
     public DotNetSosOperations(KubeCliRunner kube)
     {
         _dumpOrchestrator = new DotnetDumpOrchestrator(kube);
-        _countersOrchestrator = new DotnetCountersOrchestrator(kube);
+        _runtimeMetricsOrchestrator = new RuntimeMetricsOrchestrator(kube);
     }
 
     public void Dump(string pod, string output, string pid, string? container, string? ns, string image)
@@ -24,9 +24,9 @@ public sealed class DotNetSosOperations : ISosOperations
         _dumpOrchestrator.Execute(pod, output, pid, container, ns, image);
     }
 
-    public void DotnetCounters(string pod, string output, string pid, string format, int duration, string counters, string? container, string? ns, string image)
+    public void RuntimeMetrics(string pod, string output, string pid, string format, int duration, string counters, string? container, string? ns, string image)
     {
-        _countersOrchestrator.Execute(pod, output, pid, container, ns, image, format, duration, counters);
+        _runtimeMetricsOrchestrator.Execute(pod, output, pid, container, ns, image, format, duration, counters);
     }
 
     public void RemoteDebug(string pod, string pid, string? container, string? ns, string image)

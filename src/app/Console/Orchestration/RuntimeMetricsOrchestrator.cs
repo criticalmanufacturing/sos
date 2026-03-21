@@ -4,15 +4,15 @@ using Cmf.Cli.Plugin.Sos.Utilities;
 namespace Cmf.Cli.Plugin.Sos.Orchestration;
 
 /// <summary>
-/// This class will orchestrate DotnetCounters operation.
+/// This class will orchestrate RuntimeMetrics operation.
 /// </summary>
-public class DotnetCountersOrchestrator
+public class RuntimeMetricsOrchestrator
 {
     private readonly KubeCliRunner _kube;
-    public DotnetCountersOrchestrator(KubeCliRunner kube) => _kube = kube;
+    public RuntimeMetricsOrchestrator(KubeCliRunner kube) => _kube = kube;
 
     /// <summary>
-    /// This function will orchestrate the entire flow of dotnet-counters collection:
+    /// This function will orchestrate the entire flow of runtime metrics collection:
     /// 1. It will ensure the output path is valid and has the correct extension.
     /// 2. It will resolve the target container if not provided.
     /// 3. It will start a debug session (debug container) attached to the target container.

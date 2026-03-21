@@ -73,7 +73,7 @@ public class DebugSessionManager
     /// </summary>
     private void WaitForReady(string pod, string container, string? ns)
     {
-        // Simple "Door Kicker": Try to echo, if it fails, sleep 1s and try again.
+        // Simple "Door Kicker": Try to echo, if it fails, sleep 5s and try again.
         for(int i=0; i<10; i++) 
         {
             try 
@@ -85,7 +85,7 @@ public class DebugSessionManager
                 _kube.Run(args);
                 return; // Ready!
             }
-            catch { Thread.Sleep(1000); }
+            catch { Thread.Sleep(5000); }
         }
     }
 

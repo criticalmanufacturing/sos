@@ -14,7 +14,7 @@ public class PodInspector
 
     /// <summary>
     /// Gets the app name from the pod label app.kubernetes.io/name (e.g. "kafka-ui").
-    /// Used to determine runtime (dotnet vs nodejs) for dump/counters.
+    /// Used to determine runtime (dotnet vs nodejs) for operations.
     /// </summary>
     public string? GetAppName(string pod, string? ns)
     {

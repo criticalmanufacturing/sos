@@ -65,9 +65,9 @@ namespace Sos.UI
                         image: null!); // TODO handle this in a better way
                     break;
 
-                case "DotnetCounters":
+                case "Runtime Metrics":
                     int duration = new DurationSelection().Run();
-                    new DotnetCountersCommand().Execute(
+                    new RuntimeMetricsCommand().Execute(
                         pod: selectedPod,
                         output: AskForOutput(),
                         pid: AskForPid(),

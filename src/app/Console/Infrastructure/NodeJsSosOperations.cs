@@ -6,7 +6,7 @@ using Cmf.Cli.Plugin.Sos.Utilities;
 namespace Cmf.Cli.Plugin.Sos.Infrastructure;
 
 /// <summary>
-/// Node.js runtime operations (dump, counters, etc).
+/// Node.js runtime operations
 /// </summary>
 public sealed class NodeJsSosOperations : ISosOperations
 {
@@ -24,9 +24,9 @@ public sealed class NodeJsSosOperations : ISosOperations
         _dumpOrchestrator.Execute(pod, output, pid, container, ns, image);
     }
 
-    public void DotnetCounters(string pod, string output, string pid, string format, int duration, string counters, string? container, string? ns, string image)
+    public void RuntimeMetrics(string pod, string output, string pid, string format, int duration, string counters, string? container, string? ns, string image)
     {
-        Log.Warning($"dotnetCounters cannot be executed on a Node.js pod. Pod={pod}, namespace={ns ?? "(default)"}.");
+        Log.Warning($"RuntimeMetrics cannot be executed on a Node.js pod. Pod={pod}, namespace={ns ?? "(default)"}.");
     }
 
     public void RemoteDebug(string pod, string pid, string? container, string? ns, string image)
