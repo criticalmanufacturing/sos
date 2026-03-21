@@ -9,12 +9,26 @@ public static class AppRuntimeRegistry
     private static readonly HashSet<string> NodeJsApps = new(StringComparer.OrdinalIgnoreCase)
     {
         "clickhouse-ui",
+        "connectiot-manager",
+        "securityportal",
         // Add other Node.js app labels here.
     };
 
     private static readonly HashSet<string> DotnetApps = new(StringComparer.OrdinalIgnoreCase)
     {
-        "host"
+        "host",
+        "data-manager",
+        "envmanager",
+        "epf-alarm-mng-at",
+        "epf-alarm-mng-erh",
+        "epf-alarm-mng-mes-eh",
+        "housekeeper",
+        "housekeeper-cdm-builder",
+        "mcad",
+        "mes-scheduler",
+        "mlplatformagent",
+        "mlplatformtraining",
+        "traefik-forwardauth",
         // Add other dotnet app labels here.
     };
 

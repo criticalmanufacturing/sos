@@ -87,6 +87,15 @@ namespace Sos.UI
                         image: null!); // TODO handle this in a better way
                     break;
 
+                case "Remote Debug":
+                    new RemoteDebugCommand().Execute(
+                        pod: selectedPod,
+                        pid: AskForPid(),
+                        @namespace: selectedNamespace,
+                        container: null,
+                        image: null!); // TODO handle this in a better way
+                    break;
+
                 default:
                     throw new CliException($"Unknown action: {action}");
             }

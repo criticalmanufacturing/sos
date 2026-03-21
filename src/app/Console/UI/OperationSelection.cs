@@ -36,7 +36,8 @@ namespace Sos.UI
                     {
                         "Dump",
                         "DotnetCounters",
-                        "Interactive Shell"
+                        "Interactive Shell",
+                        "Remote Debug"
                     }));
 
             AnsiConsole.MarkupLine($"\n[blue]Selected action:[/] [green]{selectedAction}[/]");

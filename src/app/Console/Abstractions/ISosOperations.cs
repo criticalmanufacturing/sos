@@ -16,4 +16,9 @@ public interface ISosOperations
     /// Runtimes that do not support this (e.g. Node.js) should log a warning and no-op.
     /// </summary>
     void DotnetCounters(string pod, string output, string pid, string format, int duration, string counters, string? container, string? ns, string image);
+
+    /// <summary>
+    /// Start a remote debug session when supported by the runtime.
+    /// </summary>
+    void RemoteDebug(string pod, string pid, string? container, string? ns, string image);
 }
