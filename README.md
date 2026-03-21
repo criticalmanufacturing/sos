@@ -21,6 +21,9 @@ The **SoS Plugin** is a command-line diagnostic utility designed to orchestrate 
   * Automatically sends the `USR1` signal to enable the V8 inspector without restarting the application.
   * Establishes a secure local port-forwarding session to connect directly via Chrome/Edge DevTools (`chrome://inspect`).
 
+* **Interactive Shell**
+  * Attach a remote debugger to a running pod and have full access to the debugger console.
+
 * **Advanced Kubernetes Orchestration**
   * **Zero-Impact Debugging:** Leverages `kubectl debug` to attach ephemeral debugger containers using shared process namespaces, ensuring the target application is never restarted or mutated.
   * **Auto-PID Discovery:** Automatically resolves the target container and Process ID (PID) if not explicitly provided by the user.
