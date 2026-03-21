@@ -28,6 +28,7 @@ public class NodeJsDumpOrchestrator
         // Enforce correct output path and extension for NodeJS (.heapdump)
         output = OutputChecker.ResolveOutputPath(output, pod, ".heapdump");
 
+        string? scriptPath = null;
         try
         {
             var targetContainer = string.IsNullOrWhiteSpace(container) 
@@ -41,11 +42,19 @@ public class NodeJsDumpOrchestrator
             string debuggerStagingPath = "/tmp/node_dump.heapsnapshot";
             string containerScriptPath = "/tmp/extract.js";
             
-            string scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Scripts", "NodeHeapExtractor.js");
-            if (!File.Exists(scriptPath))
+            var assembly = typeof(NodeJsDumpOrchestrator).Assembly;
+            var resourceName = assembly.GetManifestResourceNames().FirstOrDefault(r => r.EndsWith("NodeHeapExtractor.js"));
+
+            if (resourceName == null)
             {
-                throw new FileNotFoundException($"Could not find the Node extraction script at {scriptPath}");
+                throw new FileNotFoundException("Could not find the Node extraction script embedded inside the binary bundle.");
             }
+
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            using var reader = new StreamReader(stream!);
+            
+            scriptPath = Path.GetTempFileName();
+            File.WriteAllText(scriptPath, reader.ReadToEnd());
 
             // STEP 1: Push the JS script into the debug container
             Log.Information("Pushing extraction script to debug container...");
