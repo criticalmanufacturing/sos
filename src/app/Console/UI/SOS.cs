@@ -14,7 +14,7 @@ namespace Sos.UI
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "oc",
+                    FileName = "kubectl",
                     Arguments = "get ns -o name",
                     RedirectStandardOutput = true,
                     UseShellExecute = false,

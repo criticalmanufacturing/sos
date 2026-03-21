@@ -51,7 +51,7 @@ public sealed class InteractiveShellCommand : BaseCommand
             
             var process = Process.Start(new ProcessStartInfo
             {
-                FileName = "oc",
+                FileName = "kubectl",
                 Arguments = $"exec -it -n {@namespace} {pod} -c {debugContainer} -- sh",
                 UseShellExecute = false
             });

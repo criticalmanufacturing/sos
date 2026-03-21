@@ -20,7 +20,7 @@ namespace Sos.UI
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "oc",
+                    FileName = "kubectl",
                     Arguments = $"get pods -n {_namespace} -o name",
                     RedirectStandardOutput = true,
                     UseShellExecute = false,
