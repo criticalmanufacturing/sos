@@ -34,3 +34,21 @@ jobs:
 
     - name: Write Summary to GitHub Actions UI
       run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+
+    # Publish artifact only for main branch
+    - name: Publish CLI
+      if: github.ref_name == 'main'
+      run: |
+        dotnet publish src/app/Console/Console.csproj \
+          --configuration Release \
+          --runtime linux-x64 \
+          --self-contained true \
+          -p:PublishSingleFile=true \
+          --output ./publish
+
+    - name: Upload build artifact
+      if: github.ref_name == 'main'
+      uses: actions/upload-artifact@v4
+      with:
+        name: sos-linux-x64
+        path: ./publish
