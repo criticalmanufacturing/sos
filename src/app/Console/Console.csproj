@@ -9,6 +9,9 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <AssemblyName>soscontainer</AssemblyName>
     <Version>1.0.0-dev</Version>  
+    <PublishSingleFile>true</PublishSingleFile>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,9 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Scripts\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="Scripts\**" />
   </ItemGroup>
 
 </Project>
