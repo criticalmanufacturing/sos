@@ -1,0 +1,54 @@
+name: .NET Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore src/app/Cmf.SoS.sln
+      
+    - name: Build
+      run: dotnet build src/app/Cmf.SoS.sln --no-restore --configuration Release
+
+    - name: Test
+      run: dotnet test src/app/Cmf.SoS.sln --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+    - name: Code Coverage Summary
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: coverage/**/coverage.cobertura.xml
+        badge: true
+        format: markdown
+        output: both
+
+    - name: Write Summary to GitHub Actions UI
+      run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+
+    # Publish artifact only for main branch
+    - name: Publish CLI
+      if: github.ref_name == 'main'
+      run: |
+        dotnet publish src/app/Console/Console.csproj \
+          --configuration Release \
+          --runtime linux-x64 \
+          --self-contained true \
+          -p:PublishSingleFile=true \
+          --output ./publish
+
+    - name: Upload build artifact
+      if: github.ref_name == 'main'
+      uses: actions/upload-artifact@v4
+      with:
+        name: sos-linux-x64
+        path: ./publish

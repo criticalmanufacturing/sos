@@ -3,24 +3,39 @@
 {
 	"name": "SoS App DevContainer",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/dotnet:1-9.0-bookworm",
+	"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 
 	"mounts": [
 		"source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
 	],
+	"features": {
+    	"ghcr.io/devcontainers/features/github-cli:1": {}, 
+		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
+		"ghcr.io/devcontainers/features/dotnet:2": {
+    		"version": "8.0"
+		},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/devcontainers/features/common-utils:2": {}
+	},
+  "remoteUser": "vscode",
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [5000, 5001],
-	// "portsAttributes": {
-	//		"5001": {
-	//			"protocol": "https"
-	//		}
-	// }
+	"forwardPorts": [9229, 9229],
+	   "portsAttributes": {
+	  		"9229": {
+	  			"protocol": "https"
+			}
+	   },
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "dotnet restore",
+	"postCreateCommand": {
+        "install-oc-cli": "cd /tmp && wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz && tar xvzf /tmp/openshift-client-linux.tar.gz oc && sudo mv /tmp/oc /usr/local/bin/ && rm /tmp/openshift-client-linux.tar.gz",
+		"install-dotnet-tools": "dotnet tool install -g dotnet-dump && dotnet tool install -g dotnet-symbol",
+        "dotnet-restore": "dotnet restore src/app/Cmf.SoS.sln",
+		"permission-fix": "sudo chown -R vscode:vscode ."
+    },
 
 	// Configure tool-specific properties.
     "customizations": {
@@ -30,8 +45,8 @@
                 "ms-dotnettools.csdevkit@1.9.55",
                 "ms-dotnettools.csharp@2.39.29",
                 "ms-dotnettools.vscode-dotnet-runtime",
-                "ms-dotnettools.vscodeintellicode-csharp",
-                "eamodio.gitlens"
+                "eamodio.gitlens",
+				"Google.geminicodeassist"
             ]
         }
     },
