@@ -8,7 +8,7 @@ namespace Cmf.Cli.Plugin.Sos.Commands;
 /// <summary>
 /// Root `sos` command: `cmf sos ...`
 /// </summary>
-[CmfCommand("sos", Id = "sos", Description = "SoS high-level Kubernetes/OpenShift operations")]
+[CmfCommand("sos", Id = "sos", Description = "SoS high-level Kubernetes operations")]
 public sealed class SosCommand : BaseCommand
 {
     public override void Configure(Command cmd)

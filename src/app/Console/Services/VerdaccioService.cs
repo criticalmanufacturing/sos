@@ -10,7 +10,7 @@ public class VerdaccioService : INPMClient
 {
     private readonly Uri address;
 #pragma warning disable CS0649
-    private HttpClient client; // this is only assigned in tests
+    private HttpClient? client; // this is only assigned in tests
 #pragma warning restore CS0649
     private readonly bool noOp;
 
@@ -22,7 +22,7 @@ public class VerdaccioService : INPMClient
         if (noOp)
         {  
             Log.Debug("NoOp Verdaccio is on: skipping version check.");
-            return null;
+            return null!;
         }
 
         // http://verdaccio/@criticalmanufacturing/dev
@@ -33,7 +33,7 @@ public class VerdaccioService : INPMClient
         {
             var res = await client.GetAsync($"{address.AbsoluteUri.TrimEnd('/')}/{ExecutionContext.PackageId}");
             var body = await res.Content.ReadFromJsonAsync<JsonElement>();
-            return (body).GetProperty("dist-tags").GetProperty(preRelease ? "next" : "latest").GetString();
+            return (body).GetProperty("dist-tags").GetProperty(preRelease ? "next" : "latest").GetString()!;
         }
         catch (Exception e)
         {
@@ -41,7 +41,7 @@ public class VerdaccioService : INPMClient
             Log.Warning("Could not retrieve latest version information. Try again later.");
         }
 
-        return null;
+        return null!;
     }
 
     public IPackage[] FindPlugins(Uri[] registries)
