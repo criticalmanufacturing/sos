@@ -40,7 +40,7 @@ namespace Sos.UI
 
             if (namespaces.Length == 0)
             {
-                AnsiConsole.MarkupLine("[red]No namespaces found! Are you sure you are logged in into openshift ?[/]");
+                AnsiConsole.MarkupLine("[red]No namespaces found! Are you sure you are logged in into the cluster ?[/]");
                 return;
             }
 
