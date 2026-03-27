@@ -101,7 +101,7 @@ public class DebugSessionManager
             var args = new List<string>();
             if (_ns != null) { args.Add("-n"); args.Add(_ns); }
             args.Add("exec"); args.Add(_pod); args.Add("-c"); args.Add(_debugContainerName);
-            args.Add("--"); args.Add("kill"); args.Add("1"); // Kill sleep
+            args.Add("--"); args.Add("pkill"); args.Add("sleep"); // Kill sleep
             _kube.RunAllowFailure(args);
         }
         catch (Exception ex) { 
