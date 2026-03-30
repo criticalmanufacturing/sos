@@ -27,6 +27,10 @@ public sealed class InteractiveShellCommand : BaseCommand
         cmd.Handler = CommandHandler.Create<string, string, string?, string>(Execute);
     }
 
+    /// <summary>
+    /// This function orchestrates the process of starting an interactive shell in a debug container attached to a specified pod.
+    /// Since it's using the debug container it has the same functionalities as using kubectl debug, but with the added benefit of automatic cleanup and better shell integration.
+    /// </summary>
     public void Execute(string pod, string @namespace, string? container, string image)
     {
         if(string.IsNullOrWhiteSpace(image))
@@ -52,7 +56,7 @@ public sealed class InteractiveShellCommand : BaseCommand
             var process = Process.Start(new ProcessStartInfo
             {
                 FileName = "kubectl",
-                Arguments = $"exec -it -n {@namespace} {pod} -c {debugContainer} -- sh",
+                Arguments = $"exec -it -n {@namespace} {pod} -c {debugContainer} -- bash",
                 UseShellExecute = false
             });
             
