@@ -19,6 +19,7 @@ RUN apt-get install -y dotnet-sdk-$DOTNET_SDK && \
     mkdir -p $DOTNET_TOOLS_PATH && \
     dotnet tool install dotnet-dump --version $DOTNET_SDK.* --tool-path=$DOTNET_TOOLS_PATH && \
     dotnet tool install dotnet-counters --version $DOTNET_SDK.* --tool-path=$DOTNET_TOOLS_PATH && \
+    dotnet tool install dotnet-symbol --tool-path $DOTNET_TOOLS_PATH && \
     chown -R $USER_ID:$USER_GROUP /usr/lib/dotnet/ && \
     chown -R $USER_ID:$USER_GROUP $DOTNET_TOOLS_PATH && \
     chown -R $USER_ID:$USER_GROUP /tmp
