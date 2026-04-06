@@ -49,6 +49,7 @@ public sealed class InteractiveShellCommand : BaseCommand
                 : container;
 
             Log.Information("Starting interactive debug session...");
+            Log.Information($"Execution command: kubectl debug {pod} -n {@namespace} --image={image} --share-processes --target={targetContainer} --attach=false -- sleep 3600");
             var debugContainer = session.Start(pod, targetContainer, image, @namespace);
 
             Log.Information("Entering interactive shell. Type 'exit' to leave.");
