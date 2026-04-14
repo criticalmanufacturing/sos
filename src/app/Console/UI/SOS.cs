@@ -93,7 +93,9 @@ namespace Sos.UI
                         pid: AskForPid(),
                         @namespace: selectedNamespace,
                         container: null,
-                        image: null!); // TODO handle this in a better way
+                        image: null!,
+                        pdbs: null,
+                        source: null); // TODO handle this in a better way
                     break;
 
                 default:
