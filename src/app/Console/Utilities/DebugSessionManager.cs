@@ -18,7 +18,7 @@ public class DebugSessionManager
     /// It constructs the appropriate kubectl command with the provided parameters and executes it.
     /// The function captures the output to determine the name of the debug container created by Kubernetes, which is essential for subsequent operations.
     /// </summary>
-    public string Start(string pod, string targetContainer, string image, string? ns)
+    public string Start(string pod, string targetContainer, string image, string? ns, bool useImageCommand = false)
     {
 
         var args = new List<string>();
@@ -31,9 +31,12 @@ public class DebugSessionManager
         args.Add($"--target={targetContainer}"); // As requested
         args.Add("--attach=false"); // Essential for automation (prevents hanging)
         
-        args.Add("--");
-        args.Add("sleep"); 
-        args.Add("3600"); // Keep it alive so we can exec into it
+        if (!useImageCommand) // Currently only being used by symbol server. Remove when we host our own.
+        {
+            args.Add("--");
+            args.Add("sleep"); 
+            args.Add("3600"); // Keep it alive so we can exec into it
+        }
 
         _pod = pod;
         _ns = ns;

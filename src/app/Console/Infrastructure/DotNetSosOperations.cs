@@ -1,7 +1,7 @@
 using Cmf.Cli.Plugin.Sos.Orchestration;
 using Cmf.Cli.Plugin.Sos.Abstractions;
 using Cmf.Cli.Plugin.Sos.Utilities;
-using Cmf.CLI.Core;
+using Cmf.CLI.Utilities;
 
 namespace Cmf.Cli.Plugin.Sos.Infrastructure;
 
@@ -12,11 +12,13 @@ public sealed class DotNetSosOperations : ISosOperations
 {
     private readonly DotnetDumpOrchestrator _dumpOrchestrator;
     private readonly RuntimeMetricsOrchestrator _runtimeMetricsOrchestrator;
+    private readonly DotnetRemoteDebugOrchestrator _remoteDebugOrchestrator;
 
     public DotNetSosOperations(KubeCliRunner kube)
     {
         _dumpOrchestrator = new DotnetDumpOrchestrator(kube);
         _runtimeMetricsOrchestrator = new RuntimeMetricsOrchestrator(kube);
+        _remoteDebugOrchestrator = new DotnetRemoteDebugOrchestrator(kube);
     }
 
     public void Dump(string pod, string output, string pid, string? container, string? ns, string image)
@@ -29,8 +31,13 @@ public sealed class DotNetSosOperations : ISosOperations
         _runtimeMetricsOrchestrator.Execute(pod, output, pid, container, ns, image, format, duration, counters);
     }
 
-    public void RemoteDebug(string pod, string pid, string? container, string? ns, string image)
+    public void RemoteDebug(string pod, string pid, string? container, string? ns, string image, string? pdbPath = null, string? sourceCodePath = null)
     {
-        Log.Warning($"RemoteDebug is currently supported only for Node.js pods. Pod={pod}, namespace={ns ?? "(default)"}.");
+        if (string.IsNullOrWhiteSpace(pdbPath) || string.IsNullOrWhiteSpace(sourceCodePath))
+        {
+            throw new CliException("PDB and Source Code paths are required for .NET remote debugging. Please provide them via UI or command line arguments.");
+        }
+
+        _remoteDebugOrchestrator.Execute(pod, pid, container, ns, pdbPath, sourceCodePath);
     }
 }

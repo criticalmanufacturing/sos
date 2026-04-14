@@ -1,0 +1,61 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach to Kubernetes",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:pickRemoteProcess}",  // The target Process ID of the .NET application inside the pod.
+            "justMyCode": false,  // Set to false to allow stepping into external libraries or framework code.
+            "logging": {
+                "engineLogging": true,
+                "trace": true,
+                "traceResponse": true
+            },
+            "symbolOptions": {
+                // Points to the symbol server providing your PDBs.
+                "searchPaths": [
+                    "${SYMBOL_SERVER_URL}"
+                ],
+                "searchMicrosoftSymbolServer": false,
+                "cachePath": "/tmp/symbolcache",
+                "moduleFilter": {
+                    // Speeds up debugger attach by only loading symbols for specified assemblies.
+                    "mode": "loadOnlyIncluded",
+                    "includedModules": [
+                        // Add any additional assembly prefixes you wish to step into here.
+                        "Cmf.*"
+                    ]
+                }
+            },
+            // Uses kubectl to tunnel debugger traffic over standard I/O to the remote vsdbg instance.
+            "pipeTransport": {
+                "pipeProgram": "kubectl",
+                "pipeArgs": [
+                    "exec",
+                    "-i",
+                    "${POD}",
+                    "-n",
+                    "${NAMESPACE}",
+                    "-c",
+                    "${DEBUG_CONTAINER}",
+                    "--"
+                ],
+                "debuggerPath": "/vsdbg/wrapper.sh",
+                "quoteArgs": false
+            },
+            // Maps the paths where the binaries were originally compiled to your local source code paths.
+            // Format: { "Where the code was compiled": "Where is your source code" }
+            "sourceFileMap": {
+                "${REMOTE_SOURCE_PATH}": "${SOURCE_CODE}"
+            },
+            "expressionEvaluationOptions": {
+                "allowImplicitFuncEval": true,
+                "allowToString": true,
+                "allowFastEvaluate": true
+            },
+            // Set to false if you want the debugger to bind breakpoints even if the local source code slightly differs.
+            "requireExactSource": true
+        }
+    ]
+}

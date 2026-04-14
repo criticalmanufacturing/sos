@@ -19,17 +19,21 @@ public sealed class RemoteDebugCommand : BaseCommand
         var targetContainerOpt = new Option<string>("--container", "The specific container inside the pod");
         var nsOpt = new Option<string>(new[] { "--namespace", "-n" }, "Namespace of the target pod") { IsRequired = true };
         var imageOpt = new Option<string>("--image", () => "dev.criticalmanufacturing.io/platformengineering/sos:latest", "Debug image");
+        var pdbsOpt = new Option<string?>("--pdbs", "Local path to the PDBs directory (Required for .NET)");
+        var sourceOpt = new Option<string?>("--source", "Local path to the Product Source Code (Required for .NET)");
 
         cmd.AddArgument(podArg);
         cmd.AddOption(pidOption);
         cmd.AddOption(targetContainerOpt);
         cmd.AddOption(nsOpt);
         cmd.AddOption(imageOpt);
+        cmd.AddOption(pdbsOpt);
+        cmd.AddOption(sourceOpt);
 
-        cmd.Handler = CommandHandler.Create<string, string, string?, string?, string>(Execute);
+        cmd.Handler = CommandHandler.Create<string, string, string?, string?, string, string?, string?>(Execute);
     }
 
-    public void Execute(string pod, string pid, string? container, string? @namespace, string image)
+    public void Execute(string pod, string pid, string? container, string? @namespace, string image, string? pdbs, string? source)
     {
         if(string.IsNullOrWhiteSpace(image)) 
         {
@@ -50,7 +54,7 @@ public sealed class RemoteDebugCommand : BaseCommand
         
         try
         {
-            ops.RemoteDebug(pod, pid, container, @namespace, image);
+            ops.RemoteDebug(pod, pid, container, @namespace, image, pdbs, source);
         }
         catch (Exception ex)
         {
