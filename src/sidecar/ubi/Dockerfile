@@ -16,6 +16,9 @@ RUN chmod 777 /usr/lib64 && \
     mkdir -p /var/www && chmod 777 /var/www
 
 # Create the wrapper script. 
+# This script will mirror the .NET runtime and application assemblies into the container to allow vsdbg to debug the application without needing to mount the entire filesystem or use symlinks from the host.
+# By creating ln links to the loaded assemblies, vsdbg will access a folder for example /usr/lib/64/dotnet which will point to /proc/pid/root/usr/lib64/dotnet.
+# And with this have access to the exact same files as the application without needing to worry about symlink permissions or host filesystem structure.
 RUN { \
       echo '#!/bin/bash'; \
       echo 'echo "Starting wrapper execution..." > /tmp/wrapper.log'; \
