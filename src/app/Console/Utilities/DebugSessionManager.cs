@@ -18,7 +18,7 @@ public class DebugSessionManager
     /// It constructs the appropriate kubectl command with the provided parameters and executes it.
     /// The function captures the output to determine the name of the debug container created by Kubernetes, which is essential for subsequent operations.
     /// </summary>
-    public string Start(string pod, string targetContainer, string image, string? ns, bool useImageCommand = false)
+    public string Start(string pod, string targetContainer, string image, string? ns)
     {
 
         var args = new List<string>();
@@ -31,12 +31,9 @@ public class DebugSessionManager
         args.Add($"--target={targetContainer}"); // As requested
         args.Add("--attach=false"); // Essential for automation (prevents hanging)
         
-        if (!useImageCommand) // Currently only being used by symbol server. Remove when we host our own.
-        {
-            args.Add("--");
-            args.Add("sleep"); 
-            args.Add("3600"); // Keep it alive so we can exec into it
-        }
+        args.Add("--");
+        args.Add("sleep"); 
+        args.Add("3600"); // Keep it alive so we can exec into it
 
         _pod = pod;
         _ns = ns;
@@ -104,7 +101,7 @@ public class DebugSessionManager
             var args = new List<string>();
             if (_ns != null) { args.Add("-n"); args.Add(_ns); }
             args.Add("exec"); args.Add(_pod); args.Add("-c"); args.Add(_debugContainerName);
-            args.Add("--"); args.Add("kill"); args.Add("1"); // Kill sleep
+            args.Add("--"); args.Add("sh"); args.Add("-c"); args.Add("pkill -f 'sleep 3600' || true"); // Safely kill only the sleep process
             _kube.RunAllowFailure(args);
         }
         catch (Exception ex) { 
