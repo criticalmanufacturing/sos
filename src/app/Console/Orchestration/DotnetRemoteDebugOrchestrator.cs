@@ -15,7 +15,7 @@ public class DotnetRemoteDebugOrchestrator
     
     public DotnetRemoteDebugOrchestrator(KubeCliRunner kube) => _kube = kube;
 
-    public void Execute(string pod, string pid, string? container, string? ns, string pdbPath, string sourceCodePath)
+    public void Execute(string pod, string? container, string? ns, string sourceCodePath)
     {
         var inspector = new PodInspector(_kube);
         DebugSessionManager? debugSession = null;
@@ -63,7 +63,7 @@ public class DotnetRemoteDebugOrchestrator
             // 4. Generate the launch.json locally
             string remoteSourcePath = "/__w/1/s"; // TODO: Expose this via CLI options in RemoteDebugCommand OR handle this deterministically
             Log.Information("Generating VS Code launch.json from embedded template...");
-            CreateLaunchJson(sourceCodePath, pod, ns, debugContainerName, pid, pdbServerUrl, remoteSourcePath);
+            CreateLaunchJson(sourceCodePath, pod, ns, debugContainerName, pdbServerUrl, remoteSourcePath);
 
             Log.Information("\n========================================================");
             Log.Information("DEBUGGER IS READY!");
@@ -102,7 +102,7 @@ public class DotnetRemoteDebugOrchestrator
         return _kube.Run(osArgs).StdOut.ToLower();
     }
 
-    private void CreateLaunchJson(string sourceCodePath, string pod, string? ns, string debugContainerName, string pid, string pdbServerUrl, string remoteSourcePath)
+    private void CreateLaunchJson(string sourceCodePath, string pod, string? ns, string debugContainerName, string pdbServerUrl, string remoteSourcePath)
     {
         var assembly = typeof(DotnetRemoteDebugOrchestrator).Assembly;
         var resourceName = assembly.GetManifestResourceNames().FirstOrDefault(r => r.EndsWith("launch.json"));
@@ -117,8 +117,6 @@ public class DotnetRemoteDebugOrchestrator
         string templateContent = reader.ReadToEnd();
 
         string finalJson = templateContent
-            .Replace("\"${PID}\"", pid) // Strips the quotes so VS Code receives a raw integer (e.g. 27 instead of "27")
-            .Replace("${PID}", pid)
             .Replace("${POD}", pod)
             .Replace("${NAMESPACE}", ns ?? "default")
             .Replace("${DEBUG_CONTAINER}", debugContainerName)

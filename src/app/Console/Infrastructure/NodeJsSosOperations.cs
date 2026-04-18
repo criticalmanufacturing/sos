@@ -29,7 +29,7 @@ public sealed class NodeJsSosOperations : ISosOperations
         Log.Warning($"RuntimeMetrics cannot be executed on a Node.js pod. Pod={pod}, namespace={ns ?? "(default)"}.");
     }
 
-    public void RemoteDebug(string pod, string pid, string? container, string? ns, string image, string? pdbPath = null, string? sourceCodePath = null)
+    public void RemoteDebug(string pod, string pid, string? container, string? ns, string image, string? sourceCodePath = null)
     {
         _remoteDebugOrchestrator.Execute(pod, pid, container, ns, image);
     }
