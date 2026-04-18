@@ -1,0 +1,19 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch SOS CLI",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/app/Console/bin/Debug/net8.0/cmf-sos.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/app/Console",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        }
+    ]
+}

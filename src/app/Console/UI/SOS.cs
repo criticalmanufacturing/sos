@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Sos.UI.Utils;
 using Cmf.Cli.Plugin.Sos.Commands;
 using Cmf.CLI.Utilities;
+using Cmf.Cli.Plugin.Sos.Runtime;
 
 namespace Sos.UI
 {
@@ -88,14 +89,34 @@ namespace Sos.UI
                     break;
 
                 case "Remote Debug":
+                    string? source = null;
+                    string? pid = null;
+                    // Determine the runtime by checking if the pod name contains known identifiers (e.g., 'host', 'node').
+                    // This is more reliable for the UI than assuming the pod name is an exact match to a registered app name.
+                    AppRuntime podRuntime = AppRuntimeRegistry.GetRuntimeFromPodName(selectedPod);
+
+                    if (podRuntime == AppRuntime.Dotnet)
+                    {
+                        // If the pod is .NET, we need to ask for the source code path
+                        source = AskForSource();
+                    }
+                    else if(podRuntime == AppRuntime.NodeJs)
+                    {
+                        // If the pod is Node.js, we need to ask for the Process ID (PID)
+                        pid = AskForPid();
+                    }
+                    else 
+                    {
+                        throw new CliException("Unknown selected pod runtime. Please ensure this is a compatible pod with remote debug.");
+                    }
+
                     new RemoteDebugCommand().Execute(
                         pod: selectedPod,
-                        pid: AskForPid(),
+                        pid: pid,
                         @namespace: selectedNamespace,
                         container: null,
                         image: null!,
-                        pdbs: null,
-                        source: null); // TODO handle this in a better way
+                        source: source);
                     break;
 
                 default:
@@ -111,6 +132,11 @@ namespace Sos.UI
         private string AskForOutput()
         {
             return new OutputSelection().Run();
+        }
+
+        private string AskForSource()
+        {
+            return new SourceSelection().Run();
         }
     }
 }

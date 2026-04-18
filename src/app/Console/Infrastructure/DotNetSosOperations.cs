@@ -31,13 +31,13 @@ public sealed class DotNetSosOperations : ISosOperations
         _runtimeMetricsOrchestrator.Execute(pod, output, pid, container, ns, image, format, duration, counters);
     }
 
-    public void RemoteDebug(string pod, string pid, string? container, string? ns, string image, string? pdbPath = null, string? sourceCodePath = null)
+    public void RemoteDebug(string pod, string pid, string? container, string? ns, string image, string? sourceCodePath = null)
     {
-        if (string.IsNullOrWhiteSpace(pdbPath) || string.IsNullOrWhiteSpace(sourceCodePath))
+        if (string.IsNullOrWhiteSpace(sourceCodePath))
         {
-            throw new CliException("PDB and Source Code paths are required for .NET remote debugging. Please provide them via UI or command line arguments.");
+            throw new CliException("Source Code path is required for .NET remote debugging. Please provide it via UI or command line arguments.");
         }
 
-        _remoteDebugOrchestrator.Execute(pod, pid, container, ns, pdbPath, sourceCodePath);
+        _remoteDebugOrchestrator.Execute(pod, container, ns, sourceCodePath);
     }
 }
