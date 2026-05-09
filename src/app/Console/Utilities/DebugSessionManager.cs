@@ -15,25 +15,25 @@ public class DebugSessionManager
 
     /// <summary>
     /// This function starts a debug session by creating a new debug container attached to the specified pod and container.
-    /// It constructs the appropriate kubectl command with the provided parameters and executes it.
-    /// The function captures the output to determine the name of the debug container created by Kubernetes, which is essential for subsequent operations.
+    /// It uses a Sentinel File polling loop to guarantee safe self-termination (TTL 3600s) even if the client crashes.
     /// </summary>
     public string Start(string pod, string targetContainer, string image, string? ns)
     {
-
         var args = new List<string>();
         if (!string.IsNullOrEmpty(ns)) { args.Add("-n"); args.Add(ns); }
 
         args.Add("debug");
         args.Add(pod);
         args.Add($"--image={image}");
-        args.Add("--share-processes"); // As requested
-        args.Add($"--target={targetContainer}"); // As requested
-        args.Add("--attach=false"); // Essential for automation (prevents hanging)
+        args.Add("--share-processes"); 
+        args.Add($"--target={targetContainer}"); 
+        args.Add("--attach=false"); 
         
         args.Add("--");
-        args.Add("sleep"); 
-        args.Add("3600"); // Keep it alive so we can exec into it
+        args.Add("sh"); 
+        args.Add("-c"); 
+        // Loop 1200 times (20 mins). If the file exists, exit. Otherwise sleep 1s and check again.
+        args.Add("for i in $(seq 1 1200); do if [ -f /tmp/debug-done ]; then exit 0; fi; sleep 1; done");
 
         _pod = pod;
         _ns = ns;
@@ -90,8 +90,8 @@ public class DebugSessionManager
     }
 
     /// <summary>
-    /// This function closes the debug session by killing the debug container.
-    /// If it fails it will throw an exception with instructions for manual cleanup.
+    /// This function closes the debug session by dropping the sentinel file into the container,
+    /// triggering the polling loop to exit gracefully.
     /// </summary>
     public void Close()
     {
@@ -100,12 +100,65 @@ public class DebugSessionManager
         {
             var args = new List<string>();
             if (_ns != null) { args.Add("-n"); args.Add(_ns); }
-            args.Add("exec"); args.Add(_pod); args.Add("-c"); args.Add(_debugContainerName);
-            args.Add("--"); args.Add("sh"); args.Add("-c"); args.Add("pkill -f 'sleep 3600' || true"); // Safely kill only the sleep process
+            args.Add("exec"); 
+            args.Add(_pod); 
+            args.Add("-c"); 
+            args.Add(_debugContainerName);
+            args.Add("--"); 
+            args.Add("sh"); 
+            args.Add("-c"); 
+            args.Add("touch /tmp/debug-done"); 
+            
             _kube.RunAllowFailure(args);
+            Log.Information("Sent cleanup signal to debug container.");
+
+            EnsureEphemeralPodWasTerminated();
         }
         catch (Exception ex) { 
-            throw new CliException("Failed to clean up debug container. Please check manually and remove the 'debugger-*' container if it exists. " + ex.Message);
+            throw new CliException("Failed to send cleanup signal to debug container. It will self-terminate when its TTL expires. " + ex.Message);
          }
+    }
+
+    /// <summary>
+    /// Verifies that the ephemeral debug container has successfully transitioned to a Terminated state.
+    /// Uses JSONPath to directly query the container's status without relying on text parsing.
+    /// </summary>
+    public void EnsureEphemeralPodWasTerminated()
+    {
+        if (_debugContainerName == null || _pod == null) return;
+
+        try
+        {
+            Log.Information("Verifying debug container termination...");
+            
+            // Give the Kubelet a brief moment to process the exit command and update the API state
+            Thread.Sleep(2000);
+
+            var args = new List<string>();
+            if (_ns != null) { args.Add("-n"); args.Add(_ns); }
+            args.Add("get");
+            args.Add("pod");
+            args.Add(_pod);
+            
+            // Natively extract just the state of our specific ephemeral container
+            args.Add("-o");
+            args.Add($"jsonpath={{.status.ephemeralContainerStatuses[?(@.name==\"{_debugContainerName}\")].state}}");
+
+            var res = _kube.Run(args);
+
+            // Output will look like {"terminated":{...}} if dead, or {"running":{...}} if alive
+            if (res.StdOut.Contains("terminated", StringComparison.OrdinalIgnoreCase))
+            {
+                Log.Information("Cleanup Verified: Debug container successfully terminated.");
+            }
+            else
+            {
+                Log.Warning($"Cleanup verification failed. Container may still be running. Current state: {res.StdOut}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning($"Could not definitively verify container termination. {ex.Message}");
+        }
     }
 }

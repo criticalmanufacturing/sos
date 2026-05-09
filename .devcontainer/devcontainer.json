@@ -10,7 +10,9 @@
 	],
 	"features": {
     	"ghcr.io/devcontainers/features/github-cli:1": {}, 
-		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
+		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+			"version": "1.35.3"
+		},
 		"ghcr.io/devcontainers/features/dotnet:2": {
     		"version": "8.0"
 		},

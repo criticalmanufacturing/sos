@@ -27,7 +27,7 @@ try
 
     rootCommand.SetHandler(() =>
     {
-        Log.Debug("No subcommand provided. Launching interactive TUI.");
+        Log.Debug("No subcommand provided. Launching interactive UI.");
         var menu = new MainMenu();
         menu.Show();
     });
