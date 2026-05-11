@@ -7,9 +7,13 @@ using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 using Sos.UI;
+using Cmf.Cli.Plugin.Sos.Utilities;
 
 try
 {
+    // Validate kubectl installation and exact version requirement
+    KubectlVersionValidator.EnsureCorrectVersion();
+
     // as it's an internal development tool, we keep telemetry on by default
     Environment.SetEnvironmentVariable("cmf_sos_enable_telemetry", "1");
     Environment.SetEnvironmentVariable("cmf_sos_enable_extended_telemetry", "1");

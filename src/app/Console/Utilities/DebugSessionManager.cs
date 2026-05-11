@@ -51,7 +51,7 @@ public class DebugSessionManager
 
         Log.Information($"Attached to: {_debugContainerName}");
         
-        // Quick verify it's up before proceeding (1 retry)
+        // Verify that the container is ready
         WaitForReady(pod, _debugContainerName, ns);
 
         return _debugContainerName;
@@ -79,13 +79,23 @@ public class DebugSessionManager
             try 
             {
                 var args = new List<string>();
-                if (ns != null) { args.Add("-n"); args.Add(ns); }
-                args.Add("exec"); args.Add(pod); args.Add("-c"); args.Add(container); 
-                args.Add("--"); args.Add("true");
-                _kube.Run(args);
-                return; // Ready!
+                if (ns != null) 
+                { 
+                    args.Add("-n"); 
+                    args.Add(ns); }
+                    args.Add("exec"); 
+                    args.Add(pod); 
+                    args.Add("-c"); 
+                    args.Add(container); 
+                    args.Add("--"); 
+                    args.Add("true");
+                    _kube.Run(args);
+                    return; // Ready!
             }
-            catch { Thread.Sleep(5000); }
+            catch 
+            { 
+                Thread.Sleep(5000); 
+            }
         }
     }
 
