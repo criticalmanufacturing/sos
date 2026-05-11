@@ -11,8 +11,8 @@ using Cmf.Cli.Plugin.Sos.Utilities;
 
 try
 {
-    // Validate kubectl installation and exact version requirement
-    KubectlVersionValidator.EnsureCorrectVersion();
+    // Validate environment setup including kubectl version and authentication
+    EnvironmentValidator.Validate();
 
     // as it's an internal development tool, we keep telemetry on by default
     Environment.SetEnvironmentVariable("cmf_sos_enable_telemetry", "1");
