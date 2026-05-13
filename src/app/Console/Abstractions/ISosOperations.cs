@@ -21,4 +21,9 @@ public interface ISosOperations
     /// Start a remote debug session when supported by the runtime.
     /// </summary>
     void RemoteDebug(string pod, string pid, string? container, string? ns, string image, string? sourceCodePath = null);
+
+    /// <summary>
+    /// Start an interactive shell session in the specified pod.
+    /// </summary>
+    void InteractiveShell(string pod, string ns, string? container, string image);
 }

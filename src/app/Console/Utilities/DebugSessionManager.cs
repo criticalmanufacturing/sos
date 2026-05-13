@@ -35,6 +35,8 @@ public class DebugSessionManager
         // Loop 1200 times (20 mins). If the file exists, exit. Otherwise sleep 1s and check again.
         args.Add("for i in $(seq 1 1200); do if [ -f /tmp/debug-done ]; then exit 0; fi; sleep 1; done");
 
+        Log.Information($"Execution command: kubectl {string.Join(' ', args)}");
+
         _pod = pod;
         _ns = ns;
 
@@ -145,7 +147,11 @@ public class DebugSessionManager
             Thread.Sleep(2000);
 
             var args = new List<string>();
-            if (_ns != null) { args.Add("-n"); args.Add(_ns); }
+            if (_ns != null) 
+            {
+                args.Add("-n"); 
+                args.Add(_ns); 
+            }
             args.Add("get");
             args.Add("pod");
             args.Add(_pod);
