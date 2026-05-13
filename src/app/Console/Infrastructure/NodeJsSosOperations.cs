@@ -2,6 +2,7 @@ using Cmf.CLI.Core;
 using Cmf.Cli.Plugin.Sos.Orchestration;
 using Cmf.Cli.Plugin.Sos.Abstractions;
 using Cmf.Cli.Plugin.Sos.Utilities;
+using Cmf.Cli.Plugin.Sos.Commands;
 
 namespace Cmf.Cli.Plugin.Sos.Infrastructure;
 
@@ -12,11 +13,14 @@ public sealed class NodeJsSosOperations : ISosOperations
 {
     private readonly NodeJsDumpOrchestrator _dumpOrchestrator;
     private readonly NodeJsRemoteDebugOrchestrator _remoteDebugOrchestrator;
+    private readonly InteractiveShellCommand interactiveShellCommand;
+
 
     public NodeJsSosOperations(KubeCliRunner kube)
     {
         _dumpOrchestrator = new NodeJsDumpOrchestrator(kube);
         _remoteDebugOrchestrator = new NodeJsRemoteDebugOrchestrator(kube);
+        interactiveShellCommand = new();
     }
 
     public void Dump(string pod, string output, string pid, string? container, string? ns, string image)
@@ -32,5 +36,10 @@ public sealed class NodeJsSosOperations : ISosOperations
     public void RemoteDebug(string pod, string pid, string? container, string? ns, string image, string? sourceCodePath = null)
     {
         _remoteDebugOrchestrator.Execute(pod, pid, container, ns, image);
+    }
+
+    public void InteractiveShell(string pod, string ns, string? container, string image)
+    {
+        interactiveShellCommand.Execute(pod, ns, container, image);
     }
 }

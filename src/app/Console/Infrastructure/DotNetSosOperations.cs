@@ -1,6 +1,7 @@
 using Cmf.Cli.Plugin.Sos.Orchestration;
 using Cmf.Cli.Plugin.Sos.Abstractions;
 using Cmf.Cli.Plugin.Sos.Utilities;
+using Cmf.Cli.Plugin.Sos.Commands;
 using Cmf.CLI.Utilities;
 
 namespace Cmf.Cli.Plugin.Sos.Infrastructure;
@@ -13,12 +14,14 @@ public sealed class DotNetSosOperations : ISosOperations
     private readonly DotnetDumpOrchestrator _dumpOrchestrator;
     private readonly RuntimeMetricsOrchestrator _runtimeMetricsOrchestrator;
     private readonly DotnetRemoteDebugOrchestrator _remoteDebugOrchestrator;
+    private readonly InteractiveShellCommand interactiveShellCommand;
 
     public DotNetSosOperations(KubeCliRunner kube)
     {
         _dumpOrchestrator = new DotnetDumpOrchestrator(kube);
         _runtimeMetricsOrchestrator = new RuntimeMetricsOrchestrator(kube);
         _remoteDebugOrchestrator = new DotnetRemoteDebugOrchestrator(kube);
+        interactiveShellCommand = new();
     }
 
     public void Dump(string pod, string output, string pid, string? container, string? ns, string image)
@@ -39,5 +42,10 @@ public sealed class DotNetSosOperations : ISosOperations
         }
 
         _remoteDebugOrchestrator.Execute(pod, container, ns, sourceCodePath);
+    }
+
+    public void InteractiveShell(string pod, string ns, string? container, string image)
+    {
+        interactiveShellCommand.Execute(pod, ns, container, image);
     }
 }
