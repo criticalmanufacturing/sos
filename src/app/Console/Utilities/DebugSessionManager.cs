@@ -17,10 +17,14 @@ public class DebugSessionManager
     /// This function starts a debug session by creating a new debug container attached to the specified pod and container.
     /// It uses a Sentinel File polling loop to guarantee safe self-termination (TTL 3600s) even if the client crashes.
     /// </summary>
-    public string Start(string pod, string targetContainer, string image, string? ns)
+    public string Start(string pod, string targetContainer, string image, string? ns, bool isInteractiveShell = false)
     {
         var args = new List<string>();
-        if (!string.IsNullOrEmpty(ns)) { args.Add("-n"); args.Add(ns); }
+        if (!string.IsNullOrEmpty(ns)) 
+        { 
+            args.Add("-n"); 
+            args.Add(ns); 
+        }
 
         args.Add("debug");
         args.Add(pod);
@@ -32,8 +36,17 @@ public class DebugSessionManager
         args.Add("--");
         args.Add("sh"); 
         args.Add("-c"); 
-        // Loop 1200 times (20 mins). If the file exists, exit. Otherwise sleep 1s and check again.
-        args.Add("for i in $(seq 1 1200); do if [ -f /tmp/debug-done ]; then exit 0; fi; sleep 1; done");
+
+        if(isInteractiveShell)
+        {
+            // In case of an Interactive Shell sessions, create a infinite loop to keep the container alive until the sentinel file is created
+            args.Add("while true; do if [ -f /tmp/debug-done ]; then exit 0; fi; sleep 1; done");
+        }
+        else
+        {
+            // Loop 1200 times (20 mins). If the file exists, exit. Otherwise sleep 1s and check again. Used in workflow operations.
+            args.Add("for i in $(seq 1 1200); do if [ -f /tmp/debug-done ]; then exit 0; fi; sleep 1; done");
+        }
 
         Log.Information($"Execution command: kubectl {string.Join(' ', args)}");
 

@@ -49,7 +49,7 @@ public sealed class InteractiveShellCommand : BaseCommand
                 : container;
 
             Log.Information("Starting interactive debug session...");
-            var debugContainer = session.Start(pod, targetContainer, image, @namespace);
+            var debugContainer = session.Start(pod, targetContainer, image, @namespace, true);
 
             Log.Information("Entering interactive shell. Type 'exit' to leave.");
             
