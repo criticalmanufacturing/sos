@@ -33,10 +33,10 @@ public sealed class RuntimeMetricsCommand : BaseCommand
         cmd.AddOption(nsOpt);
         cmd.AddOption(imageOpt);
 
-        cmd.Handler = CommandHandler.Create<string, string, string, string, int, string, string?, string?, string>(Execute);
+        cmd.Handler = CommandHandler.Create<string, string, string, string, int, string, string?, string, string>(Execute);
     }
 
-    public void Execute(string pod, string output, string pid, string format, int duration, string counters, string? container, string? @namespace, string image)
+    public void Execute(string pod, string output, string pid, string format, int duration, string counters, string? container, string @namespace, string image)
     {
         // The following conditions are only used when the user uses the SOS UI. In this case since we call directly execute() we need some way to use default values
         if(string.IsNullOrWhiteSpace(image))

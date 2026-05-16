@@ -20,7 +20,7 @@ public class NodeJsDumpOrchestrator
     /// 5. It will copy the output file from the debug container to the local machine.
     /// 6. It will handle cleanup of the debug session and provide informative logging throughout the process.
     /// </summary>
-    public void Execute(string pod, string output, string pid, string? container, string? ns, string image)
+    public void Execute(string pod, string output, string pid, string? container, string ns, string image)
     {
         var inspector = new PodInspector(_kube);
         var session = new DebugSessionManager(_kube);
@@ -63,10 +63,9 @@ public class NodeJsDumpOrchestrator
             // STEP 2: Execute the script
             Log.Information("Triggering V8 Heap Snapshot via Inspector Protocol...");
             var dumpArgs = new List<string>();
-            if (ns != null) 
-            { 
-                dumpArgs.Add("-n"); dumpArgs.Add(ns); 
-            }
+
+            dumpArgs.Add("-n"); 
+            dumpArgs.Add(ns); 
             dumpArgs.Add("exec"); 
             dumpArgs.Add(pod); 
             dumpArgs.Add("-c"); 

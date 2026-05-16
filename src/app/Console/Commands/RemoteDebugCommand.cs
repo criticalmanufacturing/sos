@@ -28,10 +28,10 @@ public sealed class RemoteDebugCommand : BaseCommand
         cmd.AddOption(imageOpt);
         cmd.AddOption(sourceOpt);
 
-        cmd.Handler = CommandHandler.Create<string, string?, string?, string?, string, string?>(Execute);
+        cmd.Handler = CommandHandler.Create<string, string?, string?, string, string, string?>(Execute);
     }
 
-    public void Execute(string pod, string? pid, string? container, string? @namespace, string image, string? source)
+    public void Execute(string pod, string? pid, string? container, string @namespace, string image, string? source)
     {
         if(string.IsNullOrWhiteSpace(image)) 
         {

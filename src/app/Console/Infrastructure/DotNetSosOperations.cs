@@ -24,7 +24,7 @@ public sealed class DotNetSosOperations : ISosOperations
         interactiveShellCommand = new();
     }
 
-    public void Dump(string pod, string output, string pid, string? container, string? ns, string image)
+    public void Dump(string pod, string output, string pid, string? container, string ns, string image)
     {
         _dumpOrchestrator.Execute(pod, output, pid, container, ns, image);
     }
