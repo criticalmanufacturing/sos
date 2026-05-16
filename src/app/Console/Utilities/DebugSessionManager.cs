@@ -39,8 +39,8 @@ public class DebugSessionManager
 
         if(isInteractiveShell)
         {
-            // In case of an Interactive Shell sessions, create a infinite loop to keep the container alive until the sentinel file is created
-            args.Add("while true; do if [ -f /tmp/debug-done ]; then exit 0; fi; sleep 1; done");
+            // In case of an Interactive Shell sessions, create a 40 minute session.
+            args.Add("for i in $(seq 1 2400); do if [ -f /tmp/debug-done ]; then exit 0; fi; sleep 1; done");
         }
         else
         {
