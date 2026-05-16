@@ -68,21 +68,7 @@ public class RuntimeMetricsOrchestrator
 
             _kube.Run(countersArgs);
 
-            Log.Information($"Downloading to {output} ...");
-
-            var cpArgs = new List<string>();
-            if (ns != null) 
-            { 
-                cpArgs.Add("-n"); cpArgs.Add(ns); 
-            }
-            cpArgs.Add("cp");
-            cpArgs.Add("--retries=1");
-            cpArgs.Add($"{pod}:{targetPath}");
-            cpArgs.Add(output);
-            cpArgs.Add("-c");
-            cpArgs.Add(debugContainer);
-
-            _kube.Run(cpArgs);
+            KubeFileTransfer.Download(_kube, pod, ns, debugContainer, targetPath, output);
             Log.Information("SUCCESS.");
         }
         finally

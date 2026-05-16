@@ -20,7 +20,7 @@ public class DotnetDumpOrchestrator
     /// 5. It will copy the output file from the debug container to the local machine.
     /// 6. It will handle cleanup of the debug session and provide informative logging throughout the process.
     /// </summary>
-    public void Execute(string pod, string output, string pid, string? container, string? ns, string image)
+    public void Execute(string pod, string output, string pid, string? container, string ns, string image)
     {
         var inspector = new PodInspector(_kube);
         var session = new DebugSessionManager(_kube);
@@ -49,10 +49,10 @@ public class DotnetDumpOrchestrator
             Log.Information("Collecting dump...");
             
             var dumpArgs = new List<string>();
-            if (ns != null) 
-            { 
-                dumpArgs.Add("-n"); dumpArgs.Add(ns); 
-            }
+
+            dumpArgs.Add("-n"); 
+            dumpArgs.Add(ns); 
+            
             dumpArgs.Add("exec"); 
             dumpArgs.Add(pod); 
             dumpArgs.Add("-c"); 
@@ -69,30 +69,23 @@ public class DotnetDumpOrchestrator
                 export DOTNET_CLI_HOME=/tmp
                 export DOTNET_NOLOGO=true
                 export TMPDIR=/proc/{pid}/root/tmp
-                
-                dotnet-dump collect -p {pid} -o {targetPath} && \
-                cp /proc/{pid}/root{targetPath} {debuggerStagingPath} && \
-                rm /proc/{pid}/root{targetPath}
+
+                PRODUCTIVE_DUMP=/proc/{pid}/root{targetPath}
+                DEBUG_STAGING={debuggerStagingPath}
+
+                dotnet-dump collect -p {pid} -o ""$PRODUCTIVE_DUMP""
+
+                cp ""$PRODUCTIVE_DUMP"" ""$DEBUG_STAGING""
             ");
 
             _kube.Run(dumpArgs);
 
-            // Download from the debugger's local filesystem
-            Log.Information($"Downloading to {output} ...");
-            
-            var cpArgs = new List<string>();
-            if (ns != null) 
-            { 
-                cpArgs.Add("-n"); cpArgs.Add(ns); 
-            }
-            cpArgs.Add("cp");
-            cpArgs.Add("--retries=1");
-            cpArgs.Add($"{pod}:{debuggerStagingPath}");
-            cpArgs.Add(output);
-            cpArgs.Add("-c"); 
-            cpArgs.Add(debugContainer);
+            // Since the dump file is now on the debug container filesystem, we can delete it from productive pod
+            var productivePodFileManager = new ProductivePodFileManager(_kube);
+            productivePodFileManager.DeleteFileFromProductivePod(pod, ns, targetPath);
 
-            _kube.Run(cpArgs);
+            // Download from the debugger's local filesystem
+            KubeFileTransfer.Download(_kube, pod, ns, debugContainer, debuggerStagingPath, output);
             Log.Information("SUCCESS.");
         }
         finally

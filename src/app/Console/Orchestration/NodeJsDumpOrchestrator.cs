@@ -58,19 +58,7 @@ public class NodeJsDumpOrchestrator
 
             // STEP 1: Push the JS script into the debug container
             Log.Information("Pushing extraction script to debug container...");
-            var pushArgs = new List<string>();
-            if (ns != null) 
-            { 
-                pushArgs.Add("-n"); pushArgs.Add(ns); 
-            }
-            pushArgs.Add("cp");
-            pushArgs.Add("--retries=-1");
-            pushArgs.Add(scriptPath);
-            pushArgs.Add($"{pod}:{containerScriptPath}");
-            pushArgs.Add("-c"); 
-            pushArgs.Add(debugContainer);
-
-            _kube.Run(pushArgs);
+            KubeFileTransfer.Upload(_kube, pod, ns, debugContainer, scriptPath, containerScriptPath);
 
             // STEP 2: Execute the script
             Log.Information("Triggering V8 Heap Snapshot via Inspector Protocol...");
@@ -93,17 +81,7 @@ public class NodeJsDumpOrchestrator
             _kube.Run(dumpArgs);
 
             // STEP 3: Pull the dump back to the local environment
-            Log.Information($"Downloading to {output} ...");
-            var cpArgs = new List<string>();
-            if (ns != null) { cpArgs.Add("-n"); cpArgs.Add(ns); }
-            cpArgs.Add("cp");
-            cpArgs.Add("--retries=1");
-            cpArgs.Add($"{pod}:{debuggerStagingPath}");
-            cpArgs.Add(output);
-            cpArgs.Add("-c"); 
-            cpArgs.Add(debugContainer);
-
-            _kube.Run(cpArgs);
+            KubeFileTransfer.Download(_kube, pod, ns, debugContainer, debuggerStagingPath, output);
             
             Log.Information("SUCCESS.");
         }
