@@ -15,7 +15,7 @@ public class DotnetRemoteDebugOrchestrator
     
     public DotnetRemoteDebugOrchestrator(KubeCliRunner kube) => _kube = kube;
 
-    public void Execute(string pod, string? container, string? ns, string sourceCodePath)
+    public void Execute(string pod, string? container, string? ns, string sourceCodePath, int sessionDuration = 20)
     {
         var inspector = new PodInspector(_kube);
         DebugSessionManager? debugSession = null;
@@ -58,7 +58,7 @@ public class DotnetRemoteDebugOrchestrator
             // 3. Inject the main .NET debugger container (vsdbg)
             Log.Information("Injecting debug container...");
             debugSession = new DebugSessionManager(_kube);
-            var debugContainerName = debugSession.Start(pod, targetContainer, debugImage, ns);
+            var debugContainerName = debugSession.Start(pod, targetContainer, debugImage, ns, sessionDuration);
 
             // 4. Generate the launch.json locally
             string remoteSourcePath = "/__w/1/s"; // TODO: Expose this via CLI options in RemoteDebugCommand OR handle this deterministically

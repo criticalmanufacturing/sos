@@ -21,7 +21,7 @@ public class NodeJsRemoteDebugOrchestrator
     /// 4. Fetches the active debug session from the Node instance.
     /// 5. Presents the direct Chrome DevTools URL to the user.
     /// </summary>
-    public void Execute(string pod, string pid, string? container, string? ns, string image)
+    public void Execute(string pod, string pid, string? container, string? ns, string image, int sessionDuration = 20)
     {
         var inspector = new PodInspector(_kube);
         var session = new DebugSessionManager(_kube);
@@ -32,7 +32,7 @@ public class NodeJsRemoteDebugOrchestrator
                 ? inspector.ResolveTargetContainer(pod, ns) 
                 : container;
             
-            var debugContainer = session.Start(pod, targetContainer, image, ns);
+            var debugContainer = session.Start(pod, targetContainer, image, ns, sessionDuration);
 
             Log.Information($"Target Node.js PID: {pid}");
             Log.Information("Sending USR1 signal to enable Node.js inspector...");

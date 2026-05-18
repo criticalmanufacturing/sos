@@ -24,28 +24,28 @@ public sealed class DotNetSosOperations : ISosOperations
         interactiveShellCommand = new();
     }
 
-    public void Dump(string pod, string output, string pid, string? container, string ns, string image)
+    public void Dump(string pod, string output, string pid, string? container, string ns, string image, int sessionDuration = 20)
     {
-        _dumpOrchestrator.Execute(pod, output, pid, container, ns, image);
+        _dumpOrchestrator.Execute(pod, output, pid, container, ns, image, sessionDuration);
     }
 
-    public void RuntimeMetrics(string pod, string output, string pid, string format, int duration, string counters, string? container, string? ns, string image)
+    public void RuntimeMetrics(string pod, string output, string pid, string format, int duration, string counters, string? container, string? ns, string image, int sessionDuration = 20)
     {
-        _runtimeMetricsOrchestrator.Execute(pod, output, pid, container, ns, image, format, duration, counters);
+        _runtimeMetricsOrchestrator.Execute(pod, output, pid, container, ns, image, format, duration, counters, sessionDuration);
     }
 
-    public void RemoteDebug(string pod, string pid, string? container, string? ns, string image, string? sourceCodePath = null)
+    public void RemoteDebug(string pod, string pid, string? container, string? ns, string image, string? sourceCodePath = null, int sessionDuration = 20)
     {
         if (string.IsNullOrWhiteSpace(sourceCodePath))
         {
             throw new CliException("Source Code path is required for .NET remote debugging. Please provide it via UI or command line arguments.");
         }
 
-        _remoteDebugOrchestrator.Execute(pod, container, ns, sourceCodePath);
+        _remoteDebugOrchestrator.Execute(pod, container, ns, sourceCodePath, sessionDuration);
     }
 
-    public void InteractiveShell(string pod, string ns, string? container, string image)
+    public void InteractiveShell(string pod, string ns, string? container, string image, int sessionDuration = 20)
     {
-        interactiveShellCommand.Execute(pod, ns, container, image);
+        interactiveShellCommand.Execute(pod, ns, container, image, sessionDuration);
     }
 }

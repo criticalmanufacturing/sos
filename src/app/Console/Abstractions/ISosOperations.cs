@@ -9,21 +9,21 @@ public interface ISosOperations
     /// <summary>
     /// Capture a runtime-specific dump for the pod (e.g. .NET dump, Node.js heap snapshot).
     /// </summary>
-    void Dump(string pod, string output, string pid, string? container, string ns, string image);
+    void Dump(string pod, string output, string pid, string? container, string ns, string image, int sessionDuration = 20);
 
     /// <summary>
     /// Collect runtime metrics when supported by the runtime.
     /// Runtimes that do not support this (e.g. Node.js) should log a warning and no-op.
     /// </summary>
-    void RuntimeMetrics(string pod, string output, string pid, string format, int duration, string counters, string? container, string ns, string image);
+    void RuntimeMetrics(string pod, string output, string pid, string format, int duration, string counters, string? container, string ns, string image, int sessionDuration = 20);
 
     /// <summary>
     /// Start a remote debug session when supported by the runtime.
     /// </summary>
-    void RemoteDebug(string pod, string pid, string? container, string ns, string image, string? sourceCodePath = null);
+    void RemoteDebug(string pod, string pid, string? container, string ns, string image, string? sourceCodePath = null, int sessionDuration = 20);
 
     /// <summary>
     /// Start an interactive shell session in the specified pod.
     /// </summary>
-    void InteractiveShell(string pod, string ns, string? container, string image);
+    void InteractiveShell(string pod, string ns, string? container, string image, int sessionDuration = 20);
 }

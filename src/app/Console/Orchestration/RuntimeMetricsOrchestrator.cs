@@ -20,7 +20,7 @@ public class RuntimeMetricsOrchestrator
     /// 5. It will copy the output file from the debug container to the local machine.
     /// 6. It will handle cleanup of the debug session and provide informative logging throughout the process.
     /// </summary>
-    public void Execute(string pod, string output, string pid, string? container, string? ns, string image, string format, int duration, string counters)
+    public void Execute(string pod, string output, string pid, string? container, string? ns, string image, string format, int duration, string counters, int sessionDuration = 20)
     {
         var inspector = new PodInspector(_kube);
         var session = new DebugSessionManager(_kube);
@@ -34,7 +34,7 @@ public class RuntimeMetricsOrchestrator
                 ? inspector.ResolveTargetContainer(pod, ns)
                 : container;
 
-            var debugContainer = session.Start(pod, targetContainer, image, ns);
+            var debugContainer = session.Start(pod, targetContainer, image, ns, sessionDuration);
 
             Log.Information($"Target PID: {pid}");
 
