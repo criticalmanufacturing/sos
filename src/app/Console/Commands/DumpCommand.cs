@@ -20,6 +20,7 @@ public sealed class DumpCommand : BaseCommand
         var targetContainerOpt = new Option<string>("--container", "The specific container inside the pod");
         var nsOpt = new Option<string>(new[] { "--namespace", "-n" }, "Namespace of the target pod") { IsRequired = true };
         var imageOpt = new Option<string>("--image", () => "dev.criticalmanufacturing.io/platformengineering/sos:latest", "Debug image");
+        var sessionDurationOpt = new Option<int>(new[] { "--session-duration" }, () => 20, "Duration of the debug session in minutes.");
 
         cmd.AddArgument(podArg);
         cmd.AddOption(outputOpt);
@@ -27,11 +28,12 @@ public sealed class DumpCommand : BaseCommand
         cmd.AddOption(targetContainerOpt);
         cmd.AddOption(nsOpt);
         cmd.AddOption(imageOpt);
+        cmd.AddOption(sessionDurationOpt);
 
-        cmd.Handler = CommandHandler.Create<string, string, string, string?, string, string>(Execute);
+        cmd.Handler = CommandHandler.Create<string, string, string, string?, string, string, int>(Execute);
     }
 
-    public void Execute(string pod, string output, string pid, string? container, string @namespace, string image)
+    public void Execute(string pod, string output, string pid, string? container, string @namespace, string image, int sessionDuration = 20)
     {
         // The following conditions are only used when the user uses the SOS UI. In this case since we call directly execute() we need some way to use default values
         if(image.IsNullOrEmpty()) 
@@ -54,7 +56,7 @@ public sealed class DumpCommand : BaseCommand
         
         try
         {
-            ops.Dump(pod, output, pid, container, @namespace, image);
+            ops.Dump(pod, output, pid, container, @namespace, image, sessionDuration);
         }
         catch (Exception ex)
         {

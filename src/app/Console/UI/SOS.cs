@@ -9,6 +9,28 @@ namespace Sos.UI
 {
     public class SOS
     {
+        private bool CanListNamespaces()
+        {
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "kubectl",
+                    Arguments = "auth can-i list namespaces",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+
+            process.Start();
+            var output = process.StandardOutput.ReadToEnd().Trim();
+            process.WaitForExit();
+
+            return output.Equals("yes", StringComparison.OrdinalIgnoreCase);
+        }
+
         private string[] GetNamespaces()
         {
             var process = new Process
@@ -18,6 +40,7 @@ namespace Sos.UI
                     FileName = "kubectl",
                     Arguments = "get ns -o name",
                     RedirectStandardOutput = true,
+                    RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true
                 }
@@ -37,15 +60,24 @@ namespace Sos.UI
         {
             AnsiConsole.MarkupLine("[green]SOS is starting...[/]");
 
-            string[] namespaces = GetNamespaces();
+            string selectedNamespace;
 
-            if (namespaces.Length == 0)
+            if (CanListNamespaces())
             {
-                AnsiConsole.MarkupLine("[red]No namespaces found! Are you sure you are logged in into the cluster ?[/]");
-                return;
-            }
+                string[] namespaces = GetNamespaces();
 
-            string selectedNamespace = FilterSystem.Select("Enter namespace", namespaces);
+                if (namespaces.Length == 0)
+                {
+                    AnsiConsole.MarkupLine("[red]No namespaces found! Are you sure you are logged in into the cluster ?[/]");
+                    return;
+                }
+
+                selectedNamespace = FilterSystem.Select("Enter namespace", namespaces);
+            }
+            else
+            {
+                selectedNamespace = AnsiConsole.Ask<string>("[green]Enter namespace:[/]");
+            }
 
             AnsiConsole.MarkupLine($"\n[blue]Selected namespace:[/] [green]{selectedNamespace}[/]");
 
@@ -63,7 +95,8 @@ namespace Sos.UI
                         pid: AskForPid(),
                         @namespace: selectedNamespace,
                         container: null,
-                        image: null!); // TODO handle this in a better way
+                        image: null!,
+                        sessionDuration: AskForSessionDuration());
                     break;
 
                 case "Runtime Metrics":
@@ -77,7 +110,8 @@ namespace Sos.UI
                         container: null,
                         @namespace: selectedNamespace,
                         image: null!, // TODO handle this in a better way
-                        duration: duration);
+                        duration: duration,
+                        sessionDuration: AskForSessionDuration());
                     break;
 
                 case "Interactive Shell":
@@ -85,7 +119,8 @@ namespace Sos.UI
                         pod: selectedPod,
                         @namespace: selectedNamespace,
                         container: null,
-                        image: null!); // TODO handle this in a better way
+                        image: null!,
+                        sessionDuration: AskForSessionDuration());
                     break;
 
                 case "Remote Debug":
@@ -116,12 +151,18 @@ namespace Sos.UI
                         @namespace: selectedNamespace,
                         container: null,
                         image: null!,
-                        source: source);
+                        source: source,
+                        sessionDuration: AskForSessionDuration());
                     break;
 
                 default:
                     throw new CliException($"Unknown action: {action}");
             }
+        }
+
+        private int AskForSessionDuration()
+        {
+            return new SessionDurationSelection().Run();
         }
 
         private string AskForPid()

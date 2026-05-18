@@ -20,6 +20,7 @@ public sealed class RemoteDebugCommand : BaseCommand
         var nsOpt = new Option<string>(new[] { "--namespace", "-n" }, "Namespace of the target pod") { IsRequired = true };
         var imageOpt = new Option<string>("--image", () => "dev.criticalmanufacturing.io/platformengineering/sos:latest", "Debug image");
         var sourceOpt = new Option<string?>("--source", "Local path to the Product Source Code (Required for .NET)");
+        var sessionDurationOpt = new Option<int>(new[] { "--session-duration" }, () => 20, "Duration of the debug session in minutes.");
 
         cmd.AddArgument(podArg);
         cmd.AddOption(pidOption);
@@ -27,11 +28,12 @@ public sealed class RemoteDebugCommand : BaseCommand
         cmd.AddOption(nsOpt);
         cmd.AddOption(imageOpt);
         cmd.AddOption(sourceOpt);
+        cmd.AddOption(sessionDurationOpt);
 
-        cmd.Handler = CommandHandler.Create<string, string?, string?, string, string, string?>(Execute);
+        cmd.Handler = CommandHandler.Create<string, string?, string?, string, string, string?, int>(Execute);
     }
 
-    public void Execute(string pod, string? pid, string? container, string @namespace, string image, string? source)
+    public void Execute(string pod, string? pid, string? container, string @namespace, string image, string? source, int sessionDuration = 20)
     {
         if(string.IsNullOrWhiteSpace(image)) 
         {
@@ -52,7 +54,7 @@ public sealed class RemoteDebugCommand : BaseCommand
         
         try
         {
-            ops.RemoteDebug(pod, pid, container, @namespace, image, source);
+            ops.RemoteDebug(pod, pid, container, @namespace, image, source, sessionDuration);
         }
         catch (Exception ex)
         {
