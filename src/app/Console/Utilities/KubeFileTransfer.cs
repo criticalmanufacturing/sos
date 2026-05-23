@@ -6,7 +6,7 @@ public static class KubeFileTransfer
 {
 
     /// <summary>
-    /// This function will download a file from the target debugging container to the user local machine.
+    /// This function will download a file from the target troubleshooting container to the user local machine.
     /// </summary>
     public static void Download(KubeCliRunner kube, string pod, string? ns, string container, string remotePath, string localPath)
     {
@@ -29,7 +29,7 @@ public static class KubeFileTransfer
     }
 
     /// <summary>
-    /// This function will upload a file from the user local machine to the target debugging container.
+    /// This function will upload a file from the user local machine to the target troubleshooting container.
     /// </summary>
     public static void Upload(KubeCliRunner kube, string pod, string? ns, string container, string localPath, string remotePath)
     {

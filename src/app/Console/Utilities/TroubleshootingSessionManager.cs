@@ -4,24 +4,24 @@ using Cmf.CLI.Utilities;
 
 namespace Cmf.Cli.Plugin.Sos.Utilities;
 
-public class DebugSessionManager
+public class TroubleshootingSessionManager
 {
     private readonly KubeCliRunner _kube;
     private string? _debugContainerName;
     private string? _pod;
     private string? _ns;
 
-    public DebugSessionManager(KubeCliRunner kube) => _kube = kube;
+    public TroubleshootingSessionManager(KubeCliRunner kube) => _kube = kube;
 
     /// <summary>
-    /// This function starts a debug session by creating a new debug container attached to the specified pod and container.
+    /// This function starts a troubleshooting session by creating a new debug container attached to the specified pod and container.
     /// It uses a Sentinel File polling loop to guarantee safe self-termination (TTL 3600s) even if the client crashes.
     /// </summary>
     public string Start(string pod, string targetContainer, string image, string? ns, int sessionDuration = 20)
     {
         if (sessionDuration > 120)
         {
-            throw new CliException("Debug session duration cannot exceed 2 hours (120 minutes).");
+            throw new CliException("Troubleshooting session duration cannot exceed 2 hours (120 minutes).");
         }
 
         var args = new List<string>();
@@ -115,7 +115,7 @@ public class DebugSessionManager
     }
 
     /// <summary>
-    /// This function closes the debug session by dropping the sentinel file into the container,
+    /// This function closes the troubleshooting session by dropping the sentinel file into the container,
     /// triggering the polling loop to exit gracefully.
     /// </summary>
     public void Close()
@@ -135,17 +135,17 @@ public class DebugSessionManager
             args.Add("touch /tmp/debug-done"); 
             
             _kube.RunAllowFailure(args);
-            Log.Information("Sent cleanup signal to debug container.");
+            Log.Information("Sent cleanup signal to troubleshooting container.");
 
             EnsureEphemeralPodWasTerminated();
         }
         catch (Exception ex) { 
-            throw new CliException("Failed to send cleanup signal to debug container. It will self-terminate when its TTL expires. " + ex.Message);
+            throw new CliException("Failed to send cleanup signal to troubleshooting container. It will self-terminate when its TTL expires. " + ex.Message);
          }
     }
 
     /// <summary>
-    /// Verifies that the ephemeral debug container has successfully transitioned to a Terminated state.
+    /// Verifies that the ephemeral troubleshooting container has successfully transitioned to a Terminated state.
     /// Uses JSONPath to directly query the container's status without relying on text parsing.
     /// </summary>
     public void EnsureEphemeralPodWasTerminated()
@@ -154,7 +154,7 @@ public class DebugSessionManager
 
         try
         {
-            Log.Information("Verifying debug container termination...");
+            Log.Information("Verifying troubleshooting container termination...");
             
             // Give the Kubelet a brief moment to process the exit command and update the API state
             Thread.Sleep(2000);
@@ -178,7 +178,7 @@ public class DebugSessionManager
             // Output will look like {"terminated":{...}} if dead, or {"running":{...}} if alive
             if (res.StdOut.Contains("terminated", StringComparison.OrdinalIgnoreCase))
             {
-                Log.Information("Cleanup Verified: Debug container successfully terminated.");
+                Log.Information("Cleanup Verified: Troubleshooting container successfully terminated.");
             }
             else
             {

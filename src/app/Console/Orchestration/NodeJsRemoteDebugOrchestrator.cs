@@ -15,16 +15,16 @@ public class NodeJsRemoteDebugOrchestrator
 
     /// <summary>
     /// Orchestrates the Node.js remote debug flow:
-    /// 1. Injects a debug container.
+    /// 1. Injects a troubleshooting container.
     /// 2. Sends the USR1 signal to the target Node process to enable the V8 inspector.
     /// 3. Sets up local port-forwarding to the Node inspector port.
-    /// 4. Fetches the active debug session from the Node instance.
+    /// 4. Fetches the active troubleshooting session from the Node instance.
     /// 5. Presents the direct Chrome DevTools URL to the user.
     /// </summary>
     public void Execute(string pod, string pid, string? container, string? ns, string image, int sessionDuration = 20)
     {
         var inspector = new PodInspector(_kube);
-        var session = new DebugSessionManager(_kube);
+        var session = new TroubleshootingSessionManager(_kube);
 
         try
         {
@@ -32,7 +32,7 @@ public class NodeJsRemoteDebugOrchestrator
                 ? inspector.ResolveTargetContainer(pod, ns) 
                 : container;
             
-            var debugContainer = session.Start(pod, targetContainer, image, ns, sessionDuration);
+            var troubleshootingContainer = session.Start(pod, targetContainer, image, ns, sessionDuration);
 
             Log.Information($"Target Node.js PID: {pid}");
             Log.Information("Sending USR1 signal to enable Node.js inspector...");
@@ -42,7 +42,7 @@ public class NodeJsRemoteDebugOrchestrator
             { 
                 signalArgs.Add("-n"); signalArgs.Add(ns); 
             }
-            signalArgs.Add("exec"); signalArgs.Add(pod); signalArgs.Add("-c"); signalArgs.Add(debugContainer);
+            signalArgs.Add("exec"); signalArgs.Add(pod); signalArgs.Add("-c"); signalArgs.Add(troubleshootingContainer);
             signalArgs.Add("--"); signalArgs.Add("sh"); signalArgs.Add("-c");
             signalArgs.Add($"kill -USR1 {pid}");
 

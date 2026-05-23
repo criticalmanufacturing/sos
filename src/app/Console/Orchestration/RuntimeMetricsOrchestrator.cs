@@ -15,15 +15,15 @@ public class RuntimeMetricsOrchestrator
     /// This function will orchestrate the entire flow of runtime metrics collection:
     /// 1. It will ensure the output path is valid and has the correct extension.
     /// 2. It will resolve the target container if not provided.
-    /// 3. It will start a debug session (debug container) attached to the target container.
-    /// 4. It will execute the dotnet-counters command inside the debug container, targeting the PID and collecting the output in the debug container's filesystem.
-    /// 5. It will copy the output file from the debug container to the local machine.
-    /// 6. It will handle cleanup of the debug session and provide informative logging throughout the process.
+    /// 3. It will start a troubleshooting session (troubleshooting container) attached to the target container.
+    /// 4. It will execute the dotnet-counters command inside the troubleshooting container, targeting the PID and collecting the output in the troubleshooting container's filesystem.
+    /// 5. It will copy the output file from the troubleshooting container to the local machine.
+    /// 6. It will handle cleanup of the troubleshooting session and provide informative logging throughout the process.
     /// </summary>
     public void Execute(string pod, string output, string pid, string? container, string? ns, string image, string format, int duration, string counters, int sessionDuration = 20)
     {
         var inspector = new PodInspector(_kube);
-        var session = new DebugSessionManager(_kube);
+        var session = new TroubleshootingSessionManager(_kube);
 
         // Enforce correct output path and extension for .NET counters (format argument)
         output = OutputChecker.ResolveOutputPath(output, pod, "."+format );
@@ -34,7 +34,7 @@ public class RuntimeMetricsOrchestrator
                 ? inspector.ResolveTargetContainer(pod, ns)
                 : container;
 
-            var debugContainer = session.Start(pod, targetContainer, image, ns, sessionDuration);
+            var troubleshootingContainer = session.Start(pod, targetContainer, image, ns, sessionDuration);
 
             Log.Information($"Target PID: {pid}");
 
@@ -50,7 +50,7 @@ public class RuntimeMetricsOrchestrator
             countersArgs.Add("exec"); 
             countersArgs.Add(pod); 
             countersArgs.Add("-c"); 
-            countersArgs.Add(debugContainer);
+            countersArgs.Add(troubleshootingContainer);
             countersArgs.Add("--"); 
             countersArgs.Add("sh"); 
             countersArgs.Add("-c");
@@ -68,7 +68,7 @@ public class RuntimeMetricsOrchestrator
 
             _kube.Run(countersArgs);
 
-            KubeFileTransfer.Download(_kube, pod, ns, debugContainer, targetPath, output);
+            KubeFileTransfer.Download(_kube, pod, ns, troubleshootingContainer, targetPath, output);
             Log.Information("SUCCESS.");
         }
         finally
