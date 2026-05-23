@@ -48,6 +48,6 @@ public class ProcessInspector
         }
 
         Log.Warning($"Could not find {processName}. Falling back to PID 1.");
-        return "1";
+        throw new CliException($"Could not resolve PID for runtime {runtime}. Please provide the PID manually.");
     }
 }
