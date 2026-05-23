@@ -34,7 +34,7 @@ public class DotnetDumpOrchestrator
                 ? inspector.ResolveTargetContainer(pod, ns) 
                 : container;
             
-            // Start Session (Exact command you provided)
+            // Start Session
             var troubleshootingContainer = session.Start(pod, targetContainer, image, ns, sessionDuration);
 
             // Find PID
