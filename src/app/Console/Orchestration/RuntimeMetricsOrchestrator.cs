@@ -60,7 +60,7 @@ public class RuntimeMetricsOrchestrator
                 export DOTNET_NOLOGO=true
                 export TMPDIR=/proc/{pid}/root/tmp
 
-                # Pipe 'q' after duration to stop session
+                # Using timeout to end dotnet-counters command
                 timeout --signal=INT {duration} dotnet-counters collect -p {pid} -o {targetPath} --format {format} --counters ""{counters}""
 
                 sleep 2
