@@ -9,27 +9,31 @@ using Cmf.CLI.Utilities;
 
 namespace Cmf.Cli.Plugin.Sos.Commands;
 
-[CmfCommand("remoteDebug", Id = "remoteDebug", ParentId = "sos", Description = "Start a remote debug session for a Node.js pod")]
+[CmfCommand("remoteDebug", Id = "remoteDebug", ParentId = "sos", Description = "Start a remote debug session for a pod")]
 public sealed class RemoteDebugCommand : BaseCommand
 {
     public override void Configure(Command cmd)
     {
         var podArg = new Argument<string>("pod", "The name of the target Pod");
-        var pidOption = new Option<string>(new[] { "--pid", "-pid" }, "Process ID of the target process") { IsRequired = true };
+        var pidOption = new Option<string?>(new[] { "--pid", "-pid" }, "Process ID of the target process");
         var targetContainerOpt = new Option<string>("--container", "The specific container inside the pod");
         var nsOpt = new Option<string>(new[] { "--namespace", "-n" }, "Namespace of the target pod") { IsRequired = true };
         var imageOpt = new Option<string>("--image", () => "dev.criticalmanufacturing.io/platformengineering/sos:latest", "Debug image");
+        var sourceOpt = new Option<string?>("--source", "Local path to the Product Source Code (Required for .NET)");
+        var sessionDurationOpt = new Option<int>(new[] { "--session-duration" }, () => 20, "Duration of the debug session in minutes.");
 
         cmd.AddArgument(podArg);
         cmd.AddOption(pidOption);
         cmd.AddOption(targetContainerOpt);
         cmd.AddOption(nsOpt);
         cmd.AddOption(imageOpt);
+        cmd.AddOption(sourceOpt);
+        cmd.AddOption(sessionDurationOpt);
 
-        cmd.Handler = CommandHandler.Create<string, string, string?, string?, string>(Execute);
+        cmd.Handler = CommandHandler.Create<string, string?, string?, string, string, string?, int>(Execute);
     }
 
-    public void Execute(string pod, string pid, string? container, string? @namespace, string image)
+    public void Execute(string pod, string? pid, string? container, string @namespace, string image, string? source, int sessionDuration = 20)
     {
         if(string.IsNullOrWhiteSpace(image)) 
         {
@@ -41,7 +45,7 @@ public sealed class RemoteDebugCommand : BaseCommand
         var ops = factory.CreateForPod(pod, @namespace, "remoteDebug");
 
         // Auto-resolve PID in case the user doesn't specify it
-        if (pid.Equals("-1"))
+        if (string.IsNullOrWhiteSpace(pid) || pid == "-1")
         {
             var inspector = new ProcessInspector(kube);
             pid = inspector.ResolvePid(pod, container, @namespace, factory.CurrentRuntime);
@@ -50,7 +54,7 @@ public sealed class RemoteDebugCommand : BaseCommand
         
         try
         {
-            ops.RemoteDebug(pod, pid, container, @namespace, image);
+            ops.RemoteDebug(pod, pid, container, @namespace, image, source, sessionDuration);
         }
         catch (Exception ex)
         {

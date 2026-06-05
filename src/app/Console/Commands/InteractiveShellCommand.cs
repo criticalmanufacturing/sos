@@ -18,16 +18,22 @@ public sealed class InteractiveShellCommand : BaseCommand
         var nsOpt = new Option<string>(new[] { "--namespace", "-n" }, "Namespace of the target pod") { IsRequired = true };
         var targetContainerOpt = new Option<string>("--container", "The specific container inside the pod");
         var imageOpt = new Option<string>("--image", () => "dev.criticalmanufacturing.io/platformengineering/sos:latest", "Debug image");
+        var sessionDurationOpt = new Option<int>(new[] { "--session-duration" }, () => 20, "Duration of the debug session in minutes.");
 
         cmd.AddArgument(podArg);
         cmd.AddOption(nsOpt);
         cmd.AddOption(targetContainerOpt);
         cmd.AddOption(imageOpt);
+        cmd.AddOption(sessionDurationOpt);
 
-        cmd.Handler = CommandHandler.Create<string, string, string?, string>(Execute);
+        cmd.Handler = CommandHandler.Create<string, string, string?, string, int>(Execute);
     }
 
-    public void Execute(string pod, string @namespace, string? container, string image)
+    /// <summary>
+    /// This function orchestrates the process of starting an interactive shell in a troubleshooting container attached to a specified pod.
+    /// Since it's using the troubleshooting container it has the same functionalities as using kubectl debug, but with the added benefit of automatic cleanup and better shell integration.
+    /// </summary>
+    public void Execute(string pod, string @namespace, string? container, string image, int sessionDuration = 20)
     {
         if(string.IsNullOrWhiteSpace(image))
         {
@@ -35,7 +41,7 @@ public sealed class InteractiveShellCommand : BaseCommand
         }
 
         var kube = new KubeCliRunner();
-        var session = new DebugSessionManager(kube);
+        var session = new TroubleshootingSessionManager(kube);
         
         try
         {
@@ -44,19 +50,33 @@ public sealed class InteractiveShellCommand : BaseCommand
                 ? podInspector.ResolveTargetContainer(pod, @namespace) 
                 : container;
 
-            Log.Information("Starting interactive debug session...");
-            var debugContainer = session.Start(pod, targetContainer, image, @namespace);
+            Log.Information("Starting interactive troubleshooting session...");
+            var troubleshootingContainer = session.Start(pod, targetContainer, image, @namespace, sessionDuration);
 
             Log.Information("Entering interactive shell. Type 'exit' to leave.");
             
             var process = Process.Start(new ProcessStartInfo
             {
                 FileName = "kubectl",
-                Arguments = $"exec -it -n {@namespace} {pod} -c {debugContainer} -- sh",
+                Arguments = $"exec -it -n {@namespace} {pod} -c {troubleshootingContainer} -- bash",
                 UseShellExecute = false
             });
+
+            if (process != null)
+            {
+                // Convert minutes to milliseconds
+                int timeoutMilliseconds = sessionDuration * 60 * 1000;
+
+                // Wait until the user exits OR the timeout hits
+                bool exitedCleanly = process.WaitForExit(timeoutMilliseconds);
+
+                if (!exitedCleanly)
+                {
+                    Log.Warning("\nTroubleshooting session timeout reached. Forcefully disconnecting shell...");
+                    process.Kill(true); // Shut down the kubectl process and all its children to prevent orphaned shells
+                }
+            }
             
-            process?.WaitForExit();
         }
         catch (Exception ex)
         {
@@ -64,7 +84,7 @@ public sealed class InteractiveShellCommand : BaseCommand
         }
         finally
         {
-            Log.Information("Closing debug session...");
+            Log.Information("Closing troubleshooting session...");
             session.Close();
         }
     }

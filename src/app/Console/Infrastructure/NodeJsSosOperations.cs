@@ -2,6 +2,7 @@ using Cmf.CLI.Core;
 using Cmf.Cli.Plugin.Sos.Orchestration;
 using Cmf.Cli.Plugin.Sos.Abstractions;
 using Cmf.Cli.Plugin.Sos.Utilities;
+using Cmf.Cli.Plugin.Sos.Commands;
 
 namespace Cmf.Cli.Plugin.Sos.Infrastructure;
 
@@ -12,25 +13,33 @@ public sealed class NodeJsSosOperations : ISosOperations
 {
     private readonly NodeJsDumpOrchestrator _dumpOrchestrator;
     private readonly NodeJsRemoteDebugOrchestrator _remoteDebugOrchestrator;
+    private readonly InteractiveShellCommand interactiveShellCommand;
+
 
     public NodeJsSosOperations(KubeCliRunner kube)
     {
         _dumpOrchestrator = new NodeJsDumpOrchestrator(kube);
         _remoteDebugOrchestrator = new NodeJsRemoteDebugOrchestrator(kube);
+        interactiveShellCommand = new();
     }
 
-    public void Dump(string pod, string output, string pid, string? container, string? ns, string image)
+    public void Dump(string pod, string output, string pid, string? container, string ns, string image, int sessionDuration = 20)
     {
-        _dumpOrchestrator.Execute(pod, output, pid, container, ns, image);
+        _dumpOrchestrator.Execute(pod, output, pid, container, ns, image, sessionDuration);
     }
 
-    public void RuntimeMetrics(string pod, string output, string pid, string format, int duration, string counters, string? container, string? ns, string image)
+    public void RuntimeMetrics(string pod, string output, string pid, string format, int duration, string counters, string? container, string? ns, string image, int sessionDuration = 20)
     {
         Log.Warning($"RuntimeMetrics cannot be executed on a Node.js pod. Pod={pod}, namespace={ns ?? "(default)"}.");
     }
 
-    public void RemoteDebug(string pod, string pid, string? container, string? ns, string image)
+    public void RemoteDebug(string pod, string pid, string? container, string? ns, string image, string? sourceCodePath = null, int sessionDuration = 20)
     {
-        _remoteDebugOrchestrator.Execute(pod, pid, container, ns, image);
+        _remoteDebugOrchestrator.Execute(pod, pid, container, ns, image, sessionDuration);
+    }
+
+    public void InteractiveShell(string pod, string ns, string? container, string image, int sessionDuration = 20)
+    {
+        interactiveShellCommand.Execute(pod, ns, container, image, sessionDuration);
     }
 }

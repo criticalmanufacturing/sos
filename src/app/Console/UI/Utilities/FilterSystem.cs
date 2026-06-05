@@ -43,7 +43,15 @@ namespace Sos.UI.Utils
                 if (key.Key == ConsoleKey.Enter)
                 {
                     if (filtered.Length == 1)
+                    {
                         selected = filtered[0];
+                    }
+                    else
+                    {
+                        var exactMatch = filtered.FirstOrDefault(i => i.Equals(input, StringComparison.OrdinalIgnoreCase));
+                        if (exactMatch != null)
+                            selected = exactMatch;
+                    }
 
                     continue;
                 }

@@ -7,9 +7,13 @@ using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 using Sos.UI;
+using Cmf.Cli.Plugin.Sos.Utilities;
 
 try
 {
+    // Validate environment setup including kubectl version and authentication
+    EnvironmentValidator.Validate();
+
     // as it's an internal development tool, we keep telemetry on by default
     Environment.SetEnvironmentVariable("cmf_sos_enable_telemetry", "1");
     Environment.SetEnvironmentVariable("cmf_sos_enable_extended_telemetry", "1");
@@ -27,7 +31,7 @@ try
 
     rootCommand.SetHandler(() =>
     {
-        Log.Debug("No subcommand provided. Launching interactive TUI.");
+        Log.Debug("No subcommand provided. Launching interactive UI.");
         var menu = new MainMenu();
         menu.Show();
     });

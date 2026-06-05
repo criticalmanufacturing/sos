@@ -15,15 +15,15 @@ public class DotnetDumpOrchestrator
     /// This function will orchestrate the entire flow of dotnet-dump collection:
     /// 1. It will ensure the output path is valid and has the correct extension.
     /// 2. It will resolve the target container if not provided.
-    /// 3. It will start a debug session (debug container) attached to the target container.
-    /// 4. It will execute the dotnet-dump command inside the debug container, targeting the PID and collecting the output in the debug container's filesystem.
-    /// 5. It will copy the output file from the debug container to the local machine.
-    /// 6. It will handle cleanup of the debug session and provide informative logging throughout the process.
+    /// 3. It will start a troubleshooting session (troubleshooting container) attached to the target container.
+    /// 4. It will execute the dotnet-dump command inside the troubleshooting container, targeting the PID and collecting the output in the troubleshooting container's filesystem.
+    /// 5. It will copy the output file from the troubleshooting container to the local machine.
+    /// 6. It will handle cleanup of the troubleshooting session and provide informative logging throughout the process.
     /// </summary>
-    public void Execute(string pod, string output, string pid, string? container, string? ns, string image)
+    public void Execute(string pod, string output, string pid, string? container, string ns, string image, int sessionDuration = 20)
     {
         var inspector = new PodInspector(_kube);
-        var session = new DebugSessionManager(_kube);
+        var session = new TroubleshootingSessionManager(_kube);
 
         // Enforce correct output path and extension for .NET (.dmp)
         output = OutputChecker.ResolveOutputPath(output, pod, ".dmp");
@@ -34,29 +34,29 @@ public class DotnetDumpOrchestrator
                 ? inspector.ResolveTargetContainer(pod, ns) 
                 : container;
             
-            // Start Session (Exact command you provided)
-            var debugContainer = session.Start(pod, targetContainer, image, ns);
+            // Start Session
+            var troubleshootingContainer = session.Start(pod, targetContainer, image, ns, sessionDuration);
 
             // Find PID
             Log.Information($"Target PID: {pid}");
 
             // Collect Dump
             // targetPath: where the APP writes it (Target Container FS)
-            // debuggerStagingPath: where we move it so kubectl can see it (Debugger Container FS)
+            // troubleshootingStagingPath: where we move it so kubectl can see it (Troubleshooting Container FS)
             string targetPath = "/tmp/output.dmp"; 
-            string debuggerStagingPath = "/tmp/final_dump.dmp";
+            string troubleshootingStagingPath = "/tmp/final_dump.dmp";
             
             Log.Information("Collecting dump...");
             
             var dumpArgs = new List<string>();
-            if (ns != null) 
-            { 
-                dumpArgs.Add("-n"); dumpArgs.Add(ns); 
-            }
+
+            dumpArgs.Add("-n"); 
+            dumpArgs.Add(ns); 
+            
             dumpArgs.Add("exec"); 
             dumpArgs.Add(pod); 
             dumpArgs.Add("-c"); 
-            dumpArgs.Add(debugContainer);
+            dumpArgs.Add(troubleshootingContainer);
             dumpArgs.Add("--"); 
             dumpArgs.Add("sh"); 
             dumpArgs.Add("-c");
@@ -69,30 +69,23 @@ public class DotnetDumpOrchestrator
                 export DOTNET_CLI_HOME=/tmp
                 export DOTNET_NOLOGO=true
                 export TMPDIR=/proc/{pid}/root/tmp
-                
-                dotnet-dump collect -p {pid} -o {targetPath} && \
-                cp /proc/{pid}/root{targetPath} {debuggerStagingPath} && \
-                rm /proc/{pid}/root{targetPath}
+
+                PRODUCTIVE_DUMP=/proc/{pid}/root{targetPath}
+                TROUBLESHOOTING_STAGING={troubleshootingStagingPath}
+
+                dotnet-dump collect -p {pid} -o ""$PRODUCTIVE_DUMP""
+
+                cp ""$PRODUCTIVE_DUMP"" ""$TROUBLESHOOTING_STAGING""
             ");
 
             _kube.Run(dumpArgs);
 
-            // Download from the debugger's local filesystem
-            Log.Information($"Downloading to {output} ...");
-            
-            var cpArgs = new List<string>();
-            if (ns != null) 
-            { 
-                cpArgs.Add("-n"); cpArgs.Add(ns); 
-            }
-            cpArgs.Add("cp");
-            cpArgs.Add("--retries=1");
-            cpArgs.Add($"{pod}:{debuggerStagingPath}");
-            cpArgs.Add(output);
-            cpArgs.Add("-c"); 
-            cpArgs.Add(debugContainer);
+            // Since the dump file is now on the troubleshooting container filesystem, we can delete it from productive pod
+            var productivePodFileManager = new ProductivePodFileManager(_kube);
+            productivePodFileManager.DeleteFileFromProductivePod(pod, ns, targetPath);
 
-            _kube.Run(cpArgs);
+            // Download from the troubleshooting container's local filesystem
+            KubeFileTransfer.Download(_kube, pod, ns, troubleshootingContainer, troubleshootingStagingPath, output);
             Log.Information("SUCCESS.");
         }
         finally
