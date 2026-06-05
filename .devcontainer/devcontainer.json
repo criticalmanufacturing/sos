@@ -16,7 +16,9 @@
 		"ghcr.io/devcontainers/features/dotnet:2": {
     		"version": "8.0"
 		},
-		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"moby": false
+		},
 		"ghcr.io/devcontainers/features/common-utils:2": {}
 	},
   "remoteUser": "vscode",
