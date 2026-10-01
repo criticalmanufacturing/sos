@@ -24,7 +24,7 @@ public class MainMenu
         var content = new Markup(
             $"[blue]{whale}[/]\n" +
             "\n[bold cyan]SOS Container[/]\n" +
-            "[grey]v1.0.0[/]"
+            "[grey]v1.1.0[/]"
         );
 
         var panel = new Panel(content)

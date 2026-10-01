@@ -1,4 +1,4 @@
-# CMF SoS Plugin v1.0.0
+# CMF SoS Plugin v1.1.0
 
 ![soscontainerimage](/images/SOSContainer.png)
 
