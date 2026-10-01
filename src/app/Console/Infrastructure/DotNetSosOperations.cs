@@ -41,7 +41,7 @@ public sealed class DotNetSosOperations : ISosOperations
             throw new CliException("Source Code path is required for .NET remote debugging. Please provide it via UI or command line arguments.");
         }
 
-        _remoteDebugOrchestrator.Execute(pod, container, ns, sourceCodePath, sessionDuration);
+        _remoteDebugOrchestrator.Execute(pod, container, ns, sourceCodePath, sessionDuration, image);
     }
 
     public void InteractiveShell(string pod, string ns, string? container, string image, int sessionDuration = 20)

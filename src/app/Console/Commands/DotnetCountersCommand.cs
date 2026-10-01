@@ -21,7 +21,7 @@ public sealed class RuntimeMetricsCommand : BaseCommand
         var countersOpt = new Option<string>(new[] { "--counters" }, () => "System.Runtime", "A space-separated list of metrics to collect.");
         var targetContainerOpt = new Option<string>("--container", "The specific container inside the pod");
         var nsOpt = new Option<string>(new[] { "--namespace", "-n" }, "Namespace of the target pod") { IsRequired = true };
-        var imageOpt = new Option<string>("--image", () => "dev.criticalmanufacturing.io/platformengineering/sos:latest", "Debug image");
+        var imageOpt = new Option<string>("--image", () => RegistryConfiguration.DebugImage, "Debug image");
         var sessionDurationOpt = new Option<int>(new[] { "--session-duration" }, () => 20, "Duration of the debug session in minutes.");
 
         cmd.AddArgument(podArg);
@@ -43,7 +43,7 @@ public sealed class RuntimeMetricsCommand : BaseCommand
         // The following conditions are only used when the user uses the SOS UI. In this case since we call directly execute() we need some way to use default values
         if(string.IsNullOrWhiteSpace(image))
         {
-            image = "dev.criticalmanufacturing.io/platformengineering/sos:latest";
+            image = RegistryConfiguration.DebugImage;
         }
 
         if(duration.Equals(-1))

@@ -11,11 +11,10 @@ namespace Cmf.Cli.Plugin.Sos.Orchestration;
 public class DotnetRemoteDebugOrchestrator
 {
     private readonly KubeCliRunner _kube;
-    private static readonly string symbolServerUrl = "https://symbolserver.apps.rhos.cm-mes.dev";
     
     public DotnetRemoteDebugOrchestrator(KubeCliRunner kube) => _kube = kube;
 
-    public void Execute(string pod, string? container, string? ns, string sourceCodePath, int sessionDuration = 20)
+    public void Execute(string pod, string? container, string? ns, string sourceCodePath, int sessionDuration = 20, string? image = null)
     {
         var inspector = new PodInspector(_kube);
         TroubleshootingSessionManager? debugSession = null;
@@ -36,7 +35,7 @@ public class DotnetRemoteDebugOrchestrator
                 ubiVersion = match.Groups["version"].Value;
             }
 
-            string debugImage = $"dev.criticalmanufacturing.io/platformengineering/sos-ubi:latest"; // TODO: this should have ubiVersion (e.g sos-ubi8)
+            string debugImage = RegistryConfiguration.ResolveDebugImage(image, useUbi: true);
             Log.Information($"Detected OS environment. Using debug image: {debugImage}");
 
             if (!Directory.Exists(sourceCodePath)) throw new CliException($"Source code path does not exist: {sourceCodePath}");
@@ -51,7 +50,7 @@ public class DotnetRemoteDebugOrchestrator
             var versionMatch = Regex.Match(describeOutput, @"app\.kubernetes\.io/version=(?<version>[^\s]+)");
             string appVersion = versionMatch.Success ? versionMatch.Groups["version"].Value : "latest";
             
-            string pdbServerUrl = $"{symbolServerUrl}/{appVersion}";
+            string pdbServerUrl = $"{RegistryConfiguration.SymbolServer.TrimEnd('/')}/{appVersion}";
             Log.Information($"Detected app version: {appVersion}");
             Log.Information($"Using symbol server URL: {pdbServerUrl}");
 

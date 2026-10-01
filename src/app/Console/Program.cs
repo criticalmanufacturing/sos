@@ -18,14 +18,13 @@ try
     Environment.SetEnvironmentVariable("cmf_sos_enable_telemetry", "1");
     Environment.SetEnvironmentVariable("cmf_sos_enable_extended_telemetry", "1");
 
-    var registryAddress = Environment.GetEnvironmentVariable("cmf_sos_registry");
 
     var (rootCommand, parser) = await StartupModule.Configure(
         packageName: "@criticalmanufacturing/sos",
         envVarPrefix: "cmf_sos",
         description: "Plugin to set up VM environments for Critical Manufacturing MES",
         args: args,
-        npmClient: new VerdaccioService(new Uri(registryAddress ?? "https://dev.criticalmanufacturing.io/repository/npm-public")));
+        npmClient: new VerdaccioService(new Uri(RegistryConfiguration.NpmRegistry)));
 
     using var activity = ExecutionContext.ServiceProvider.GetService<ITelemetryService>()!.StartActivity("Main");
 
