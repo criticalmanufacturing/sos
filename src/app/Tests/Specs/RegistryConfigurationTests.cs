@@ -15,7 +15,7 @@ public class RegistryConfigurationTests
     public void MissingOverridesKeepInternalDefaults(string? value)
     {
         WithEnvironment("cmf_sos_debug_image", value, () =>
-            Assert.Equal("dev.criticalmanufacturing.io/platformengineering/sos:latest", RegistryConfiguration.DebugImage));
+            Assert.Equal("criticalmanufacturing/sos:latest", RegistryConfiguration.DebugImage));
         WithEnvironment("cmf_sos_remote_debug_image", value, () =>
             Assert.Equal("dev.criticalmanufacturing.io/platformengineering/sos-ubi:latest", RegistryConfiguration.RemoteDotnetDebugImage));
         WithEnvironment("cmf_sos_registry", value, () =>

@@ -4,7 +4,7 @@ namespace Cmf.Cli.Plugin.Sos.Utilities;
 public static class RegistryConfiguration
 {
     public static string NpmRegistry => Read("cmf_sos_registry", "https://dev.criticalmanufacturing.io/repository/npm-public");
-    public static string DebugImage => Read("cmf_sos_debug_image", "dev.criticalmanufacturing.io/platformengineering/sos:latest");
+    public static string DebugImage => Read("cmf_sos_debug_image", "criticalmanufacturing/sos:latest");
     public static string RemoteDotnetDebugImage => Read("cmf_sos_remote_debug_image", "dev.criticalmanufacturing.io/platformengineering/sos-ubi:latest");
     public static string SymbolServer => Read("cmf_sos_symbol_server", "https://symbolserver.apps.rhos.cm-mes.dev");
 
