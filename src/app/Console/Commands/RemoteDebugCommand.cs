@@ -38,7 +38,12 @@ public sealed class RemoteDebugCommand : BaseCommand
         var kube = new KubeCliRunner();
         var factory = new SosFactory(kube);
         var ops = factory.CreateForPod(pod, @namespace, "remoteDebug");
-        image = RegistryConfiguration.ResolveDebugImage(image, factory.CurrentRuntime == Runtime.AppRuntime.Dotnet);
+        if (string.IsNullOrWhiteSpace(image))
+        {
+            image = factory.CurrentRuntime == Runtime.AppRuntime.Dotnet
+                ? RegistryConfiguration.RemoteDotnetDebugImage
+                : RegistryConfiguration.DebugImage;
+        }
 
         // Auto-resolve PID in case the user doesn't specify it
         if (string.IsNullOrWhiteSpace(pid) || pid == "-1")

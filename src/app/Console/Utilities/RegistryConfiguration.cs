@@ -5,11 +5,8 @@ public static class RegistryConfiguration
 {
     public static string NpmRegistry => Read("cmf_sos_registry", "https://dev.criticalmanufacturing.io/repository/npm-public");
     public static string DebugImage => Read("cmf_sos_debug_image", "dev.criticalmanufacturing.io/platformengineering/sos:latest");
-    public static string UbiDebugImage => Read("cmf_sos_ubi_debug_image", "dev.criticalmanufacturing.io/platformengineering/sos-ubi:latest");
+    public static string RemoteDotnetDebugImage => Read("cmf_sos_remote_debug_image", "dev.criticalmanufacturing.io/platformengineering/sos-ubi:latest");
     public static string SymbolServer => Read("cmf_sos_symbol_server", "https://symbolserver.apps.rhos.cm-mes.dev");
-
-    public static string ResolveDebugImage(string? image, bool useUbi = false) =>
-        string.IsNullOrWhiteSpace(image) ? (useUbi ? UbiDebugImage : DebugImage) : image;
 
     private static string Read(string name, string fallback)
     {

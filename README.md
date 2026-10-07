@@ -50,7 +50,7 @@ whitespace is trimmed from configured values.
 | --- | --- | --- |
 | `cmf_sos_registry` | npm registry where SoS image should be | `https://dev.criticalmanufacturing.io/repository/npm-public` |
 | `cmf_sos_debug_image` | Dumps, runtime metrics, interactive shells, and Node.js remote debugging image | `dev.criticalmanufacturing.io/platformengineering/sos:latest` |
-| `cmf_sos_ubi_debug_image` | .NET remote debugging (the UBI-based debug container) image | `dev.criticalmanufacturing.io/platformengineering/sos-ubi:latest` |
+| `cmf_sos_remote_debug_image` | .NET remote debugging image | `dev.criticalmanufacturing.io/platformengineering/sos-ubi:latest` |
 | `cmf_sos_symbol_server` | Base URL for .NET debugging symbols where SoS appends `/<appVersion>` | `https://symbolserver.apps.rhos.cm-mes.dev` |
 
 Registry and symbol-server settings are HTTP(S) URLs. Debug-image settings are
@@ -61,7 +61,7 @@ For example:
 ```bash
 export cmf_sos_registry=https://npm.example.com
 export cmf_sos_debug_image=registry.example.com/tools/sos:latest
-export cmf_sos_ubi_debug_image=registry.example.com/tools/sos-ubi:latest
+export cmf_sos_remote_debug_image=registry.example.com/tools/sos-ubi:latest
 export cmf_sos_symbol_server=https://symbols.example.com
 cmf-sos
 ```

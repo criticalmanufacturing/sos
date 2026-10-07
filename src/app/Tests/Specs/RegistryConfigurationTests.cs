@@ -15,9 +15,9 @@ public class RegistryConfigurationTests
     public void MissingOverridesKeepInternalDefaults(string? value)
     {
         WithEnvironment("cmf_sos_debug_image", value, () =>
-            Assert.Equal("dev.criticalmanufacturing.io/platformengineering/sos:latest", RegistryConfiguration.ResolveDebugImage(null)));
-        WithEnvironment("cmf_sos_ubi_debug_image", value, () =>
-            Assert.Equal("dev.criticalmanufacturing.io/platformengineering/sos-ubi:latest", RegistryConfiguration.ResolveDebugImage(null, true)));
+            Assert.Equal("dev.criticalmanufacturing.io/platformengineering/sos:latest", RegistryConfiguration.DebugImage));
+        WithEnvironment("cmf_sos_remote_debug_image", value, () =>
+            Assert.Equal("dev.criticalmanufacturing.io/platformengineering/sos-ubi:latest", RegistryConfiguration.RemoteDotnetDebugImage));
         WithEnvironment("cmf_sos_registry", value, () =>
             Assert.Equal("https://dev.criticalmanufacturing.io/repository/npm-public", RegistryConfiguration.NpmRegistry));
         WithEnvironment("cmf_sos_symbol_server", value, () =>
@@ -25,15 +25,13 @@ public class RegistryConfigurationTests
     }
 
     [Fact]
-    public void OverridesApplyToInteractiveDefaultsAndExplicitImagesWin()
+    public void OverridesAreTrimmed()
     {
         WithEnvironment("cmf_sos_debug_image", " mirror.example/sos:test ", () =>
-        WithEnvironment("cmf_sos_ubi_debug_image", "mirror.example/ubi:test", () =>
+        WithEnvironment("cmf_sos_remote_debug_image", " mirror.example/remote-debug:test ", () =>
         {
-            Assert.Equal("mirror.example/sos:test", RegistryConfiguration.ResolveDebugImage(null));
-            Assert.Equal("mirror.example/ubi:test", RegistryConfiguration.ResolveDebugImage(" ", true));
-            Assert.Equal("explicit/image:tag", RegistryConfiguration.ResolveDebugImage("explicit/image:tag"));
-            Assert.Equal("explicit/image:tag", RegistryConfiguration.ResolveDebugImage("explicit/image:tag", true));
+            Assert.Equal("mirror.example/sos:test", RegistryConfiguration.DebugImage);
+            Assert.Equal("mirror.example/remote-debug:test", RegistryConfiguration.RemoteDotnetDebugImage);
         }));
         WithEnvironment("cmf_sos_registry", " https://npm.example/ ", () =>
             Assert.Equal("https://npm.example/", RegistryConfiguration.NpmRegistry));

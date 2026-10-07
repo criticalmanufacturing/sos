@@ -31,14 +31,18 @@ namespace Sos.UI
             return output.Equals("yes", StringComparison.OrdinalIgnoreCase);
         }
 
-        private string[] GetNamespaces()
+        private string[] GetNamespaces() => GetResourceNames("ns");
+
+        private string[] GetProjects() => GetResourceNames("projects");
+
+        private string[] GetResourceNames(string resource)
         {
             var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = "kubectl",
-                    Arguments = "get ns -o name",
+                    Arguments = $"get {resource} -o name",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
@@ -52,7 +56,7 @@ namespace Sos.UI
 
             return output
                 .Split('\n', StringSplitOptions.RemoveEmptyEntries)
-                .Select(l => l.Replace("namespace/", "").Trim())
+                .Select(l => l[(l.IndexOf('/') + 1)..].Trim())
                 .ToArray();
         }
 
@@ -62,21 +66,18 @@ namespace Sos.UI
 
             string selectedNamespace;
 
-            if (CanListNamespaces())
+            string[] namespaces = CanListNamespaces() ? GetNamespaces() : Array.Empty<string>();
+
+            if (namespaces.Length > 0)
             {
-                string[] namespaces = GetNamespaces();
-
-                if (namespaces.Length == 0)
-                {
-                    AnsiConsole.MarkupLine("[red]No namespaces found! Are you sure you are logged in into the cluster ?[/]");
-                    return;
-                }
-
                 selectedNamespace = FilterSystem.Select("Enter namespace", namespaces);
             }
             else
             {
-                selectedNamespace = AnsiConsole.Ask<string>("[green]Enter namespace:[/]");
+                string[] projects = GetProjects();
+                selectedNamespace = projects.Length > 0
+                    ? FilterSystem.Select("Enter project", projects)
+                    : AnsiConsole.Ask<string>("[green]Enter namespace:[/]");
             }
 
             AnsiConsole.MarkupLine($"\n[blue]Selected namespace:[/] [green]{selectedNamespace}[/]");
