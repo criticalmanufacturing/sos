@@ -9,6 +9,12 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Add custom dev.criticalmanufacturing.io entry
+      env:
+        TARGET_IP: ${{ secrets.CRITICALMANUFACTURING_IO_IP }}
+      run: |
+        echo "$TARGET_IP dev.criticalmanufacturing.io" | sudo tee -a /etc/hosts > /dev/null
     
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
