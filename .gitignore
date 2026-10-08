@@ -398,3 +398,7 @@ FodyWeavers.xsd
 *.sln.iml
 
 *.lscache
+
+# Gradle caches and build outputs
+/.gradle/
+/build/

@@ -35,6 +35,32 @@ jobs:
     - name: Write Summary to GitHub Actions UI
       run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
 
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: '17'
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: '8.14.3'
+
+    - name: Build Docker images
+      run: gradle build --no-daemon
+
+    - name: Login to Docker Hub
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: docker/login-action@v3
+      with:
+        registry: docker.io
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Publish SoS Docker image
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: gradle publish --no-daemon
+
     # Publish artifact only for main branch
     - name: Publish CLI
       if: github.ref_name == 'main'

@@ -1,0 +1,39 @@
+import javax.inject.Inject
+import org.gradle.process.ExecOperations
+
+abstract class DockerOperations {
+    @Inject
+    abstract ExecOperations getExecOperations()
+}
+
+def docker = objects.newInstance(DockerOperations).execOperations
+def config = { key -> providers.gradleProperty(key).get() }
+def imageTag = { image ->
+    "${config('dockerRegistry')}/${config('dockerNamespace')}/${image}:${config('dockerTag')}"
+}
+
+tasks.register('build') {
+    group = 'docker'
+    description = 'Builds the Docker images configured in gradle.properties.'
+    doLast {
+        config('dockerImages').split(',')*.trim().each { image ->
+            docker.exec {
+                commandLine 'docker', 'build', '--platform', config('dockerPlatform'),
+                    '--tag', imageTag(image), config("dockerContext.${image}")
+            }
+        }
+    }
+}
+
+tasks.register('publish') {
+    group = 'docker'
+    description = 'Builds the Docker images and publishes those selected in gradle.properties.'
+    dependsOn 'build'
+    doLast {
+        config('dockerPublishImages').split(',')*.trim().each { image ->
+            docker.exec {
+                commandLine 'docker', 'push', imageTag(image)
+            }
+        }
+    }
+}

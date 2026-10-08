@@ -16,6 +16,12 @@
 		"ghcr.io/devcontainers/features/dotnet:2": {
     		"version": "8.0"
 		},
+		"ghcr.io/devcontainers/features/java:1": {
+			"version": "17",
+			"jdkDistro": "tem",
+			"installGradle": true,
+			"gradleVersion": "8.14.3"
+		},
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {
 			"moby": false
 		},
