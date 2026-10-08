@@ -10,12 +10,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Add custom dev.criticalmanufacturing.io entry
-      env:
-        TARGET_IP: ${{ secrets.CRITICALMANUFACTURING_IO_IP }}
-      run: |
-        echo "$TARGET_IP dev.criticalmanufacturing.io" | sudo tee -a /etc/hosts > /dev/null
-    
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -41,19 +35,8 @@ jobs:
     - name: Write Summary to GitHub Actions UI
       run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
 
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: temurin
-        java-version: '17'
-
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
-      with:
-        gradle-version: '8.14.3'
-
-    - name: Build Docker images
-      run: gradle build --no-daemon
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v4
 
     - name: Login to Docker Hub
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -63,9 +46,13 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Publish SoS Docker image
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      run: gradle publish --no-daemon
+    - name: Build and publish Docker images
+      uses: docker/bake-action@v7
+      with:
+        source: .
+        files: docker-bake.hcl
+        targets: default
+        push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
     # Publish artifact only for main branch
     - name: Publish CLI
