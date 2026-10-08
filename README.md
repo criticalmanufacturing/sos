@@ -52,9 +52,9 @@ whitespace is trimmed from configured values. The values below are neutral examp
 
 | Environment variable | Used for | Example value |
 | --- | --- | --- |
-| `cmf_sos_registry` | npm registry where SoS image should be | `https://dev.criticalmanufacturing.io/repository/npm-public` |
+| `cmf_sos_registry` | npm registry for the SoS package | `https://registry.npmjs.org/` |
 | `cmf_sos_debug_image` | Dumps, runtime metrics, interactive shells, and Node.js remote debugging image | `criticalmanufacturing/sos:latest` |
-| `cmf_sos_remote_debug_image` | .NET remote debugging image | `dev.criticalmanufacturing.io/platformengineering/sos-ubi:latest` |
+| `cmf_sos_remote_debug_image` | .NET remote debugging image | `criticalmanufacturing/sos-ubi:latest` |
 | `cmf_sos_symbol_server` | Base URL for .NET debugging symbols where SoS appends `/<appVersion>` | `https://symbolserver.apps.rhos.cm-mes.dev` |
 
 Registry and symbol-server settings are HTTP(S) URLs. Debug-image settings are
@@ -73,3 +73,49 @@ cmf-sos
 An explicit `--image` command-line option overrides the relevant debug-image
 environment variable for that command. It does not change the npm registry or
 symbol server.
+
+## Building and publishing Docker images
+
+Use Docker with the Buildx plugin and a running Docker daemon. The devcontainer
+includes both; rebuild it to apply changes to its installed tooling.
+
+From the repository root, build both images and load them into local Docker:
+
+```bash
+docker buildx bake --load
+```
+
+To build only one image:
+
+```bash
+docker buildx bake sos --load
+# Or: docker buildx bake sos-ubi --load
+```
+
+To build and publish both images to Docker Hub:
+
+```bash
+docker login
+docker buildx bake --push
+```
+
+The default targets are `criticalmanufacturing/sos:latest` and
+`criticalmanufacturing/sos-ubi:latest`, both for `linux/amd64`. Configure the
+registry, namespace, tag, and platform with environment variables:
+
+| Variable | Default |
+| --- | --- |
+| `DOCKER_REGISTRY` | `docker.io` |
+| `DOCKER_NAMESPACE` | `criticalmanufacturing` |
+| `DOCKER_TAG` | `latest` |
+| `DOCKER_PLATFORM` | `linux/amd64` |
+
+For example, build both images with a different tag:
+
+```bash
+DOCKER_TAG=development docker buildx bake --load
+```
+
+Preview the resolved configuration with `docker buildx bake --print`. The CI
+workflow builds both images on pushes and pull requests, and publishes both
+only on pushes to `main` after the .NET checks pass.

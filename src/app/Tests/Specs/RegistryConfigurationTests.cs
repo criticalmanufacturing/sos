@@ -12,14 +12,14 @@ public class RegistryConfigurationTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void MissingOverridesKeepInternalDefaults(string? value)
+    public void MissingOverridesKeepDefaults(string? value)
     {
         WithEnvironment("cmf_sos_debug_image", value, () =>
             Assert.Equal("criticalmanufacturing/sos:latest", RegistryConfiguration.DebugImage));
         WithEnvironment("cmf_sos_remote_debug_image", value, () =>
-            Assert.Equal("dev.criticalmanufacturing.io/platformengineering/sos-ubi:latest", RegistryConfiguration.RemoteDotnetDebugImage));
+            Assert.Equal("criticalmanufacturing/sos-ubi:latest", RegistryConfiguration.RemoteDotnetDebugImage));
         WithEnvironment("cmf_sos_registry", value, () =>
-            Assert.Equal("https://dev.criticalmanufacturing.io/repository/npm-public", RegistryConfiguration.NpmRegistry));
+            Assert.Equal("https://registry.npmjs.org/", RegistryConfiguration.NpmRegistry));
         WithEnvironment("cmf_sos_symbol_server", value, () =>
             Assert.Equal("https://symbolserver.apps.rhos.cm-mes.dev", RegistryConfiguration.SymbolServer));
     }

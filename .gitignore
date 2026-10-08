@@ -399,6 +399,5 @@ FodyWeavers.xsd
 
 *.lscache
 
-# Gradle caches and build outputs
-/.gradle/
+# Local build outputs
 /build/

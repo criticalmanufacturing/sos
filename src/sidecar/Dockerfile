@@ -1,5 +1,9 @@
-ARG CMF_SOS_BASE_IMAGE=dev.criticalmanufacturing.io/platformengineering/ubuntu-base-24.04:latest
-FROM ${CMF_SOS_BASE_IMAGE} AS sos
+FROM ubuntu:24.04 AS sos
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates apt-transport-https curl && \
+    sed -i.bak 's|http://|https://|g' /etc/apt/sources.list.d/ubuntu.sources && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV NODE_MAJOR=20
 ENV DOTNET_SDK=8.0
