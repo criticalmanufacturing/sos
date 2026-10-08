@@ -17,7 +17,7 @@ public sealed class InteractiveShellCommand : BaseCommand
         var podArg = new Argument<string>("pod", "The name of the target Pod");
         var nsOpt = new Option<string>(new[] { "--namespace", "-n" }, "Namespace of the target pod") { IsRequired = true };
         var targetContainerOpt = new Option<string>("--container", "The specific container inside the pod");
-        var imageOpt = new Option<string>("--image", () => "dev.criticalmanufacturing.io/platformengineering/sos:latest", "Debug image");
+        var imageOpt = new Option<string>("--image", () => RegistryConfiguration.DebugImage, "Debug image");
         var sessionDurationOpt = new Option<int>(new[] { "--session-duration" }, () => 20, "Duration of the debug session in minutes.");
 
         cmd.AddArgument(podArg);
@@ -37,7 +37,7 @@ public sealed class InteractiveShellCommand : BaseCommand
     {
         if(string.IsNullOrWhiteSpace(image))
         {
-            image = "dev.criticalmanufacturing.io/platformengineering/sos:latest";
+            image = RegistryConfiguration.DebugImage;
         }
 
         var kube = new KubeCliRunner();

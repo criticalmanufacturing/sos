@@ -18,7 +18,7 @@ public sealed class RemoteDebugCommand : BaseCommand
         var pidOption = new Option<string?>(new[] { "--pid", "-pid" }, "Process ID of the target process");
         var targetContainerOpt = new Option<string>("--container", "The specific container inside the pod");
         var nsOpt = new Option<string>(new[] { "--namespace", "-n" }, "Namespace of the target pod") { IsRequired = true };
-        var imageOpt = new Option<string>("--image", () => "dev.criticalmanufacturing.io/platformengineering/sos:latest", "Debug image");
+        var imageOpt = new Option<string>("--image", () => string.Empty, "Debug image");
         var sourceOpt = new Option<string?>("--source", "Local path to the Product Source Code (Required for .NET)");
         var sessionDurationOpt = new Option<int>(new[] { "--session-duration" }, () => 20, "Duration of the debug session in minutes.");
 
@@ -35,14 +35,15 @@ public sealed class RemoteDebugCommand : BaseCommand
 
     public void Execute(string pod, string? pid, string? container, string @namespace, string image, string? source, int sessionDuration = 20)
     {
-        if(string.IsNullOrWhiteSpace(image)) 
-        {
-            image = "dev.criticalmanufacturing.io/platformengineering/sos:latest";
-        }
-        
         var kube = new KubeCliRunner();
         var factory = new SosFactory(kube);
         var ops = factory.CreateForPod(pod, @namespace, "remoteDebug");
+        if (string.IsNullOrWhiteSpace(image))
+        {
+            image = factory.CurrentRuntime == Runtime.AppRuntime.Dotnet
+                ? RegistryConfiguration.RemoteDotnetDebugImage
+                : RegistryConfiguration.DebugImage;
+        }
 
         // Auto-resolve PID in case the user doesn't specify it
         if (string.IsNullOrWhiteSpace(pid) || pid == "-1")

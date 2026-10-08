@@ -1,39 +1,45 @@
 using Cmf.CLI.Core;
 using Cmf.CLI.Utilities;
+using System.Text.Json;
 
 namespace Cmf.Cli.Plugin.Sos.Utilities;
 
 public static class EnvironmentValidator
 {
-    private static readonly string RequiredVersion = "1.35.3";
-
     public static void Validate()
     {
-        EnsureCorrectKubectlVersion();
+        var kube = new KubeCliRunner();
+        Log.Information("Current Kubectl Version: " + GetKubectlClientVersion(kube.RunAllowFailure));
         EnsureAuthenticated();
     }
 
-    private static void EnsureCorrectKubectlVersion()
+    internal static string GetKubectlClientVersion(Func<IReadOnlyList<string>, CommandResult> run)
     {
         try
         {
-            var kube = new KubeCliRunner();
-            var result = kube.RunAllowFailure(new List<string> { "version" });
+            // Check the installed client independently of cluster connectivity and version.
+            var result = run(new[] { "version", "--client", "--output=json" });
 
-            if (result.StdOut.Contains(RequiredVersion))
+            if (result.ExitCode != 0)
             {
-                Log.Information("Current Kubectl Version: " + RequiredVersion);
+                throw new CliException("Failed to query the kubectl client version. " + result.StdErr.Trim());
             }
-            else
-            {
-                Log.Information("Kubectl Version: " + RequiredVersion + " is not installed or not in PATH. Please install the correct version to proceed.");
-                throw new CliException("Wrong kubectl version.");
-            }
+
+            using var document = JsonDocument.Parse(result.StdOut);
+            var version = document.RootElement.GetProperty("clientVersion").GetProperty("gitVersion").GetString();
+            if (string.IsNullOrWhiteSpace(version))
+                throw new CliException("kubectl returned an empty client version.");
+
+            // No exact-version or upper-version restriction, including vendor builds.
+            return version;
         }
-        catch (Exception ex) when (ex is not CliException)
+        catch (System.ComponentModel.Win32Exception)
         {
-            Log.Information("Kubectl Version: " + RequiredVersion + " is not installed or not in PATH. Please install the correct version to proceed.");
-            throw new CliException("Wrong kubectl version.");
+            throw new CliException("Could not start kubectl. Ensure it is installed and executable in PATH.");
+        }
+        catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException)
+        {
+            throw new CliException("Could not read the client version from 'kubectl version --client --output=json'. " + ex.Message);
         }
     }
 
