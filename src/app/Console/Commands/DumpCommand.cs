@@ -19,7 +19,7 @@ public sealed class DumpCommand : BaseCommand
         var pidOption = new Option<string>(new[] { "--pid", "-pid" }, "Process ID of the target process") { IsRequired = true };
         var targetContainerOpt = new Option<string>("--container", "The specific container inside the pod");
         var nsOpt = new Option<string>(new[] { "--namespace", "-n" }, "Namespace of the target pod") { IsRequired = true };
-        var imageOpt = new Option<string>("--image", () => "dev.criticalmanufacturing.io/platformengineering/sos:latest", "Debug image");
+        var imageOpt = new Option<string>("--image", () => RegistryConfiguration.DebugImage, "Debug image");
         var sessionDurationOpt = new Option<int>(new[] { "--session-duration" }, () => 20, "Duration of the debug session in minutes.");
 
         cmd.AddArgument(podArg);
@@ -36,11 +36,11 @@ public sealed class DumpCommand : BaseCommand
     public void Execute(string pod, string output, string pid, string? container, string @namespace, string image, int sessionDuration = 20)
     {
         // The following conditions are only used when the user uses the SOS UI. In this case since we call directly execute() we need some way to use default values
-        if(image.IsNullOrEmpty()) 
+        if(string.IsNullOrWhiteSpace(image))
         {
-            image = "dev.criticalmanufacturing.io/platformengineering/sos:latest";
+            image = RegistryConfiguration.DebugImage;
         }
-        
+
         var kube = new KubeCliRunner();
         var factory = new SosFactory(kube);
         var ops = factory.CreateForPod(pod, @namespace, "Dump");
@@ -53,7 +53,7 @@ public sealed class DumpCommand : BaseCommand
             pid = inspector.ResolvePid(pod, container, @namespace, factory.CurrentRuntime);
             Log.Warning($"PID not provided. Auto-resolved target PID to: {pid}");
         }
-        
+
         try
         {
             ops.Dump(pod, output, pid, container, @namespace, image, sessionDuration);

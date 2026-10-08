@@ -46,11 +46,11 @@
         "vscode": {
             "extensions": [
                 "actboy168.tasks",
+                "openai.chatgpt",
                 "ms-dotnettools.csdevkit@1.9.55",
                 "ms-dotnettools.csharp@2.39.29",
                 "ms-dotnettools.vscode-dotnet-runtime",
-                "eamodio.gitlens",
-				"Google.geminicodeassist"
+                "eamodio.gitlens"
             ]
         }
     },

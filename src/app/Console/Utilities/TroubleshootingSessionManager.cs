@@ -19,6 +19,34 @@ public class TroubleshootingSessionManager
     /// </summary>
     public string Start(string pod, string targetContainer, string image, string? ns, int sessionDuration = 20)
     {
+        var args = BuildStartArguments(pod, targetContainer, image, ns, sessionDuration);
+
+        Log.Information($"Execution command: kubectl {string.Join(' ', args)}");
+
+        _pod = pod;
+        _ns = ns;
+
+        Log.Information($"Injecting debugger (detached)...");
+
+        // This returns immediately with "Defaulting debug container name to debugger-xxxxx"
+        var res = _kube.Run(args);
+
+        // We MUST parse the name because we didn't force one
+        _debugContainerName = ExtractContainerName(res.StdOut) ?? ExtractContainerName(res.StdErr);
+
+        if (string.IsNullOrWhiteSpace(_debugContainerName))
+            throw new InvalidOperationException($"Could not determine debug container name. Output: {res.StdErr}");
+
+        Log.Information($"Attached to: {_debugContainerName}");
+
+        // Verify that the container is ready
+        WaitForReady(pod, _debugContainerName, ns);
+
+        return _debugContainerName;
+    }
+
+    internal static List<string> BuildStartArguments(string pod, string targetContainer, string image, string? ns, int sessionDuration = 20)
+    {
         if (sessionDuration > 120)
         {
             throw new CliException("Troubleshooting session duration cannot exceed 2 hours (120 minutes).");
@@ -38,6 +66,11 @@ public class TroubleshootingSessionManager
         args.Add($"--target={targetContainer}"); 
         args.Add("--attach=false"); 
         
+        // kubectl 1.36 changed the default to general, which adds SYS_PTRACE.
+        // For ephemeral containers, baseline preserves the previous security context
+        // without requesting capabilities rejected by OpenShift's nonroot SCC.
+        args.Add("--profile=baseline");
+        
         args.Add("--");
 
         int loopCount = sessionDuration * 60;
@@ -48,28 +81,7 @@ public class TroubleshootingSessionManager
         args.Add("-c");
         args.Add("while [ ! -f /tmp/debug-done ]; do sleep 1; done");
 
-        Log.Information($"Execution command: kubectl {string.Join(' ', args)}");
-
-        _pod = pod;
-        _ns = ns;
-
-        Log.Information($"Injecting debugger (detached)...");
-        
-        // This returns immediately with "Defaulting debug container name to debugger-xxxxx"
-        var res = _kube.Run(args); 
-
-        // We MUST parse the name because we didn't force one
-        _debugContainerName = ExtractContainerName(res.StdOut) ?? ExtractContainerName(res.StdErr);
-
-        if (string.IsNullOrWhiteSpace(_debugContainerName))
-            throw new InvalidOperationException($"Could not determine debug container name. Output: {res.StdErr}");
-
-        Log.Information($"Attached to: {_debugContainerName}");
-        
-        // Verify that the container is ready
-        WaitForReady(pod, _debugContainerName, ns);
-
-        return _debugContainerName;
+        return args;
     }
 
     /// <summary>

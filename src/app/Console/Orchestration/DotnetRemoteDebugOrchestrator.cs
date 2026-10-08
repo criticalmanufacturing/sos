@@ -11,11 +11,10 @@ namespace Cmf.Cli.Plugin.Sos.Orchestration;
 public class DotnetRemoteDebugOrchestrator
 {
     private readonly KubeCliRunner _kube;
-    private static readonly string symbolServerUrl = "https://symbolserver.apps.rhos.cm-mes.dev";
     
     public DotnetRemoteDebugOrchestrator(KubeCliRunner kube) => _kube = kube;
 
-    public void Execute(string pod, string? container, string? ns, string sourceCodePath, int sessionDuration = 20)
+    public void Execute(string pod, string? container, string? ns, string sourceCodePath, int sessionDuration, string image)
     {
         var inspector = new PodInspector(_kube);
         TroubleshootingSessionManager? debugSession = null;
@@ -36,8 +35,7 @@ public class DotnetRemoteDebugOrchestrator
                 ubiVersion = match.Groups["version"].Value;
             }
 
-            string debugImage = $"dev.criticalmanufacturing.io/platformengineering/sos-ubi:latest"; // TODO: this should have ubiVersion (e.g sos-ubi8)
-            Log.Information($"Detected OS environment. Using debug image: {debugImage}");
+            Log.Information($"Detected OS environment. Using debug image: {image}");
 
             if (!Directory.Exists(sourceCodePath)) throw new CliException($"Source code path does not exist: {sourceCodePath}");
 
@@ -51,14 +49,14 @@ public class DotnetRemoteDebugOrchestrator
             var versionMatch = Regex.Match(describeOutput, @"app\.kubernetes\.io/version=(?<version>[^\s]+)");
             string appVersion = versionMatch.Success ? versionMatch.Groups["version"].Value : "latest";
             
-            string pdbServerUrl = $"{symbolServerUrl}/{appVersion}";
+            string pdbServerUrl = $"{RegistryConfiguration.SymbolServer.TrimEnd('/')}/{appVersion}";
             Log.Information($"Detected app version: {appVersion}");
             Log.Information($"Using symbol server URL: {pdbServerUrl}");
 
             // 3. Inject the main .NET debugger container (vsdbg)
             Log.Information("Injecting debug container...");
             debugSession = new TroubleshootingSessionManager(_kube);
-            var debugContainerName = debugSession.Start(pod, targetContainer, debugImage, ns, sessionDuration);
+            var debugContainerName = debugSession.Start(pod, targetContainer, image, ns, sessionDuration);
 
             // 4. Generate the launch.json locally
             string remoteSourcePath = "/__w/1/s"; // TODO: Expose this via CLI options in RemoteDebugCommand OR handle this deterministically
