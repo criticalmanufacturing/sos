@@ -23,6 +23,7 @@ The **SoS Plugin** is a command-line diagnostic utility designed to orchestrate 
 
 * **Interactive Shell**
   * Attach a remote debugger to a running pod and have full access to the debugger console.
+  * The standard SoS image includes `ss` for socket state, `ip` for interfaces and routes, and `tcpdump` for packet capture. Live packet capture requires `NET_RAW`; installing the tools does not change the debug container's security profile.
 
 * **Advanced Kubernetes Orchestration**
   * **Zero-Impact Debugging:** Leverages `kubectl debug` to attach ephemeral debugger containers using shared process namespaces, ensuring the target application is never restarted or mutated.

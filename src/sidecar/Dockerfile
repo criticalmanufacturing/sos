@@ -1,7 +1,7 @@
 FROM ubuntu:24.04 AS sos
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates apt-transport-https curl && \
+    apt-get install -y --no-install-recommends ca-certificates apt-transport-https curl iproute2 tcpdump && \
     sed -i.bak 's|http://|https://|g' /etc/apt/sources.list.d/ubuntu.sources && \
     rm -rf /var/lib/apt/lists/*
 
