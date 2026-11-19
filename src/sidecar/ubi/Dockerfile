@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi:latest
+FROM docker.io/redhat/ubi8:latest
 
 RUN yum install -y procps-ng curl bash tar gzip libicu
 
